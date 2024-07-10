@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package helloworld.v1;
+
+option go_package="github.com/go-fox/fox/internal/testdata/helloword/v1;v1";
+import "api/annotations/annotations.proto";
+
+message SayHiRequest{
+  string header=1[(fox.api.tagger)={
+    header:"header"
+  }];
+  string name=2[(fox.api.tagger)={
+    path:"name"
+  }];
+}
+
+message SayHiResponse{
+  string content=1;
+}
+
+service GreeterService{
+  option(fox.api.Service)={
+    middleware:["UserAuth","Test"]
+  };
+  rpc SayHi(SayHiRequest) returns (SayHiResponse){
+    option(fox.api.method)={
+      middleware:["aa","bbb"]
+      http:{
+        post:"/v1/hellword/greeter/say_hi"
+      }
+    };
+  };
+}

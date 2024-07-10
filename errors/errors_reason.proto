@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package errors;
+
+option go_package = "github.com/go-fox/fox/errors;errors";
+
+enum ErrorReason {
+  WEBSOCKET_CLOSE = 0; // websocket关闭
+}

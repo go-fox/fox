@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package protocol;
+
+option go_package = "github.com/go-fox/fox/api/protocol;protocol";
+import "google/rpc/status.proto";
+
+// Request 上行数据
+message Request{
+  // 请求唯一标识
+  string id = 1;
+  // protobuf生成的服务完整方法选择器
+  string operation=2;
+  // 附带元数据
+  map<string,string> metadata=3;
+  // 传递的真实数据
+  bytes data=4;
+}
+
+// Reply 回复数据
+message Reply{
+  // 请求唯一标识，request提交，服务直接返回
+  string id = 1;
+  // 当前回复对应的操作
+  string operation=2;
+  // 服务器下发的元数据
+  map<string,string> metadata=3;
+  // 回复的真实数据
+  bytes data=4;
+  // 状态信息
+  google.rpc.Status status=5;
+}

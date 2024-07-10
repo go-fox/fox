@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package fox.api;
+
+option go_package = "github.com/go-fox/fox/api/annotations;annotations";
+import "google/protobuf/descriptor.proto";
+import "google/api/http.proto";
+
+extend google.protobuf.FileOptions{
+  InfoRule info=65000;
+}
+
+extend google.protobuf.ServiceOptions{
+    ServiceRule Service=66000;
+}
+
+extend google.protobuf.MethodOptions{
+  MethodRule method = 67000;
+}
+
+extend google.protobuf.FieldOptions{
+  TaggerRule tagger=68000;
+}
+
+message ServiceRule{
+  // Add middleware to the current service
+  repeated string middleware=55000;
+}
+
+message MethodRule{
+  // Add middleware to the current method
+  repeated string middleware = 1;
+  // A short summary of what the operation does.
+  string summary=2;
+  // A verbose explanation of the operation behavior. CommonMark syntax MAY be used for rich text representation.
+  string description=3;
+  // A list of HTTP configuration rules that apply to individual API methods.
+  //
+  // **NOTE:** All service configuration rules follow "last one wins" order.
+  optional google.api.HttpRule http = 4;
+}
+
+message TaggerRule{
+  optional string header =1;
+  optional string path = 2;
+  optional string query = 3;
+  optional string form = 4;
+  optional string json = 5;
+}
+
+// REQUIRED. Provides metadata about the API. The metadata MAY be used by tooling as required.
+message InfoRule{
+  //  REQUIRED. The title of the API.
+  string title=1;
+  // A short summary of the API.
+  string summary=2;
+  // A description of the API. CommonMark syntax MAY be used for rich text representation.
+  string description=3;
+  // A URL to the Terms of Service for the API. This MUST be in the form of a URL.
+  string termsOfService=4;
+  // The contact information for the exposed API.
+  Contact contact=5;
+  // The license information for the exposed API.
+  License license=6;
+  // REQUIRED. The version of the OpenAPI document (which is distinct from the OpenAPI Specification version or the API implementation version).
+  string version=7;
+}
+
+// The contact information for the exposed API.
+message Contact{
+  // The identifying name of the contact person/organization.
+  string name=1;
+  // The URL pointing to the contact information. This MUST be in the form of a URL.
+  string url=2;
+  // The email address of the contact person/organization. This MUST be in the form of an email address.
+  string email=3;
+}
+
+// The license information for the exposed API.
+message License{
+  // REQUIRED. The license name used for the API.
+  string name=1;
+  // An SPDX license expression for the API. The identifier field is mutually exclusive of the url field.
+  string identifier=2;
+  // A URL to the license used for the API. This MUST be in the form of a URL. The url field is mutually exclusive of the identifier field.
+  string url=3;
+}
