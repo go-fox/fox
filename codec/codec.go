@@ -32,16 +32,14 @@ import (
 
 var registeredCodecs = smap.New[string, Codec](true)
 
-// Codec 编码器
+// Codec codec interface
 type Codec interface {
 	Name() string
 	Marshal(v interface{}) ([]byte, error)
 	Unmarshal(data []byte, v interface{}) error
 }
 
-// RegisterCodec 注册编解码器
-//
-// @param codec Codec
+// RegisterCodec register codec
 func RegisterCodec(codec Codec) {
 	if codec == nil {
 		panic("codec: Register codec is nil")
@@ -53,11 +51,7 @@ func RegisterCodec(codec Codec) {
 	registeredCodecs.Set(name, codec)
 }
 
-// GetCodec 获取编解码器
-//
-// @param name string 编解码器名称
-// @return Codec
-// @return error
+// GetCodec load codec
 func GetCodec(name string) (Codec, error) {
 	name = strings.ToLower(name)
 	codec, ok := registeredCodecs.Get(name)

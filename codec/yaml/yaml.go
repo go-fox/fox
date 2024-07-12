@@ -24,6 +24,8 @@
 package yaml
 
 import (
+	"sync"
+
 	"gopkg.in/yaml.v3"
 
 	"github.com/go-fox/fox/codec"
@@ -32,24 +34,28 @@ import (
 // Name yaml编解码器名称
 const Name = "yaml"
 
+var initOnce sync.Once
+
 func init() {
-	codec.RegisterCodec(impl{})
+	initOnce.Do(func() {
+		codec.RegisterCodec(Codec{})
+	})
 }
 
-// impl yaml编解码器的实现
-type impl struct{}
+// Codec yaml编解码器的实现
+type Codec struct{}
 
 // Marshal returns the yaml encoding of v.
-func (impl) Marshal(v interface{}) ([]byte, error) {
+func (Codec) Marshal(v interface{}) ([]byte, error) {
 	return yaml.Marshal(v)
 }
 
 // Unmarshal parses the yaml-encoded data and stores the result
-func (impl) Unmarshal(data []byte, v interface{}) error {
+func (Codec) Unmarshal(data []byte, v interface{}) error {
 	return yaml.Unmarshal(data, v)
 }
 
 // Name codec name
-func (impl) Name() string {
+func (Codec) Name() string {
 	return Name
 }

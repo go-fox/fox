@@ -25,6 +25,7 @@ package toml
 
 import (
 	"bytes"
+	"sync"
 
 	"github.com/BurntSushi/toml"
 
@@ -34,11 +35,15 @@ import (
 // Name toml编码器名称
 const Name = "toml"
 
+var initOnce sync.Once
+
 // Codec toml编解码器实现
 type Codec struct{}
 
 func init() {
-	codec.RegisterCodec(Codec{})
+	initOnce.Do(func() {
+		codec.RegisterCodec(Codec{})
+	})
 }
 
 // Name codec name

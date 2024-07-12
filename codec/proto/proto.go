@@ -24,6 +24,8 @@
 package proto
 
 import (
+	"sync"
+
 	"google.golang.org/protobuf/proto"
 
 	"github.com/go-fox/fox/codec"
@@ -32,8 +34,12 @@ import (
 // Name proto编码器名称
 const Name = "proto"
 
+var initOnce sync.Once
+
 func init() {
-	codec.RegisterCodec(Codec{})
+	initOnce.Do(func() {
+		codec.RegisterCodec(Codec{})
+	})
 }
 
 // Codec 编解码器实现

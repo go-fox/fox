@@ -27,6 +27,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"reflect"
+	"sync"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -36,6 +37,8 @@ import (
 
 // Name json编解码器名称
 const Name = "json"
+
+var initOnce sync.Once
 
 var (
 	_ codec.Codec = (*Codec)(nil)
@@ -50,7 +53,9 @@ var (
 )
 
 func init() {
-	codec.RegisterCodec(Codec{})
+	initOnce.Do(func() {
+		codec.RegisterCodec(Codec{})
+	})
 }
 
 // Codec json codec

@@ -33,6 +33,12 @@ import (
 	"time"
 
 	"dario.cat/mergo"
+	// init codec
+	_ "github.com/go-fox/fox/codec/json"
+	_ "github.com/go-fox/fox/codec/proto"
+	_ "github.com/go-fox/fox/codec/toml"
+	_ "github.com/go-fox/fox/codec/xml"
+	_ "github.com/go-fox/fox/codec/yaml"
 )
 
 var _ Config = (*config)(nil)

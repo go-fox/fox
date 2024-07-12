@@ -25,7 +25,7 @@ package config
 
 import "time"
 
-// DataSet 数据集
+// DataSet dataset
 type DataSet struct {
 	Key       string
 	Value     []byte
@@ -33,29 +33,18 @@ type DataSet struct {
 	Timestamp time.Time
 }
 
-// Source 资源接口
+// Source is config source interface
 type Source interface {
-	// Load 加载数据
-	//
-	//  @return DataSet
-	//  @return error
+	// Load load dataset
 	Load() ([]*DataSet, error)
-	// Watch 监听数据源变动
-	//
-	//  @return Watcher
-	//  @return error
+	// Watch new a watcher
 	Watch() (Watcher, error)
 }
 
 // Watcher 监听器
 type Watcher interface {
-	// Next 获取数据
-	//
-	//  @return []*DataSet
-	//  @return error
+	// Next source change
 	Next() ([]*DataSet, error)
-	// Stop 停止监听
-	//
-	//  @return error
+	// Stop is stop this watcher
 	Stop() error
 }

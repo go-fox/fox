@@ -25,6 +25,7 @@ package xml
 
 import (
 	"encoding/xml"
+	"sync"
 
 	"github.com/go-fox/fox/codec"
 )
@@ -32,8 +33,12 @@ import (
 // Name xml编解码器名称
 const Name = "xml"
 
+var initOnce sync.Once
+
 func init() {
-	codec.RegisterCodec(Codec{})
+	initOnce.Do(func() {
+		codec.RegisterCodec(Codec{})
+	})
 }
 
 // Codec xml编解码器的实现
