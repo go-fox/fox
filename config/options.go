@@ -50,10 +50,6 @@ type options struct {
 type Option func(o *options)
 
 // WithSources configure sources
-//
-//	@param sources ...Source
-//	@return Option
-//	@player
 func WithSources(sources ...Source) Option {
 	return func(o *options) {
 		o.sources = sources
@@ -61,10 +57,6 @@ func WithSources(sources ...Source) Option {
 }
 
 // WithDecoder configure Decoder
-//
-//	@param decoder Decoder
-//	@return Option
-//	@player
 func WithDecoder(decoder Decoder) Option {
 	return func(o *options) {
 		o.decoder = decoder
@@ -72,10 +64,6 @@ func WithDecoder(decoder Decoder) Option {
 }
 
 // WithResolver configure Resolver
-//
-//	@param resolver Resolver
-//	@return Option
-//	@player
 func WithResolver(resolver Resolver) Option {
 	return func(o *options) {
 		o.resolver = resolver
@@ -83,10 +71,6 @@ func WithResolver(resolver Resolver) Option {
 }
 
 // WithMerge configure Merge
-//
-//	@param merge Merge
-//	@return Option
-//	@player
 func WithMerge(merge Merge) Option {
 	return func(o *options) {
 		o.merge = merge
