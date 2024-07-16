@@ -137,13 +137,13 @@ func AppZone() string {
 
 // PrintVersion print version
 func PrintVersion() {
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("name"), color.BlueString(appName))
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("version"), color.BlueString(appVersion))
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("hostname"), color.BlueString(hostName))
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("ceresVersion"), color.BlueString(version))
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("goVersion"), color.BlueString(goVersion))
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("buildUser"), color.BlueString(buildUser))
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("buildHost"), color.BlueString(buildHost))
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("buildTime"), color.BlueString(buildTime))
-	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("buildStatus"), color.BlueString(buildStatus))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("name"), color.BlueString(appName))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("version"), color.BlueString(appVersion))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("hostname"), color.BlueString(hostName))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("ceresVersion"), color.BlueString(version))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("goVersion"), color.BlueString(goVersion))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildUser"), color.BlueString(buildUser))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildHost"), color.BlueString(buildHost))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildTime"), color.BlueString(buildTime))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildStatus"), color.BlueString(buildStatus))
 }
