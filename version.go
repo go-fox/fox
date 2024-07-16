@@ -140,7 +140,7 @@ func PrintVersion() {
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("name"), color.BlueString(appName))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("version"), color.BlueString(appVersion))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("hostname"), color.BlueString(hostName))
-	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("ceresVersion"), color.BlueString(version))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("foxVersion"), color.BlueString(version))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("goVersion"), color.BlueString(goVersion))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildUser"), color.BlueString(buildUser))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildHost"), color.BlueString(buildHost))
