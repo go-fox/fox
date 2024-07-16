@@ -57,8 +57,8 @@ var (
 
 // 环境变量设置
 var (
-	region string
-	zone   string
+	appRegion string
+	appZone   string
 )
 
 // init 初始化
@@ -117,33 +117,33 @@ func StartTime() string {
 
 // SetAppRegion 设置部属区域
 func SetAppRegion(region string) {
-	region = region
+	appRegion = region
 }
 
 // AppRegion 部属地域
 func AppRegion() string {
-	return region
+	return appRegion
 }
 
 // SetAppZone set app zone
 func SetAppZone(z string) {
-	zone = z
+	appZone = z
 }
 
 // AppZone 应用部属的分区
 func AppZone() string {
-	return zone
+	return appZone
 }
 
 // PrintVersion print version
 func PrintVersion() {
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("name"), color.BlueString(appName))
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("version"), color.BlueString(appVersion))
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("hostname"), color.BlueString(hostName))
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("ceresVersion"), color.BlueString(version))
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("goVersion"), color.BlueString(goVersion))
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("buildUser"), color.BlueString(buildUser))
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("buildHost"), color.BlueString(buildHost))
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("buildTime"), color.BlueString(buildTime))
-	fmt.Printf("%-9s]> %-30s => %s\n", "ceres", color.RedString("buildStatus"), color.BlueString(buildStatus))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("name"), color.BlueString(appName))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("version"), color.BlueString(appVersion))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("hostname"), color.BlueString(hostName))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("ceresVersion"), color.BlueString(version))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("goVersion"), color.BlueString(goVersion))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("buildUser"), color.BlueString(buildUser))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("buildHost"), color.BlueString(buildHost))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("buildTime"), color.BlueString(buildTime))
+	fmt.Printf("%-9s]> %-30s => %s\n", "fox", color.RedString("buildStatus"), color.BlueString(buildStatus))
 }
