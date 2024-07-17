@@ -25,8 +25,13 @@ package websocket
 
 import (
 	"crypto/tls"
+	"log/slog"
+	"time"
+
+	"github.com/fasthttp/websocket"
 
 	"github.com/go-fox/fox/codec"
+	"github.com/go-fox/fox/middleware"
 )
 
 // AuthorizationHandler is a session authorization handler
@@ -73,5 +78,61 @@ func OnConnected(onConnect ConnectedInterceptor) ServerOption {
 func OnDisconnected(disconnect DisconnectedInterceptor) ServerOption {
 	return func(s *Server) {
 		s.disconnectedInterceptor = disconnect
+	}
+}
+
+// Network with a network option
+func Network(network string) ServerOption {
+	return func(s *Server) {
+		s.network = network
+	}
+}
+
+// Address with an address option
+func Address(address string) ServerOption {
+	return func(s *Server) {
+		s.address = address
+	}
+}
+
+// Middleware with middlewares
+func Middleware(ms ...middleware.Middleware) ServerOption {
+	return func(s *Server) {
+		s.middleware.Use(ms...)
+	}
+}
+
+// SessionPoolSize with session pool size
+func SessionPoolSize(size int) ServerOption {
+	return func(s *Server) {
+		s.sessionPoolSize = size
+	}
+}
+
+// Timeout with timeout option
+func Timeout(timeout time.Duration) ServerOption {
+	return func(s *Server) {
+		s.timeout = timeout
+	}
+}
+
+// HandlerPoolSize with handler pool size
+func HandlerPoolSize(size int) ServerOption {
+	return func(s *Server) {
+		s.handlerPoolSize = size
+	}
+}
+
+// Upgrader with websocket.FastHTTPUpgrader option
+func Upgrader(upgrader websocket.FastHTTPUpgrader) ServerOption {
+	return func(s *Server) {
+		s.upgrader = upgrader
+	}
+}
+
+// Logger with logger option
+func Logger(logger *slog.Logger) ServerOption {
+	return func(s *Server) {
+		s.logger = logger
 	}
 }

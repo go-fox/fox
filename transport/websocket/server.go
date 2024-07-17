@@ -98,16 +98,22 @@ func NewServer(opts ...ServerOption) *Server {
 		},
 		sessionPoolSize: math.MaxInt32,
 		handlerPoolSize: math.MaxInt32,
-		logger:          slog.Default().WithGroup("transport.websocket"),
+		logger:          slog.Default(),
 		codec:           proto.Codec{},
 		handlerMap:      smap.New[string, HandlerFunc](),
 		dec:             DefaultRequestDecoder,
 		enc:             DefaultResponseEncoder,
 		ene:             DefaultErrorEncoder,
+		upgrader: websocket.FastHTTPUpgrader{
+			ReadBufferSize:  2048,
+			WriteBufferSize: 2048,
+		},
 	}
 	for _, opt := range opts {
 		opt(srv)
 	}
+	srv.logger = srv.logger.With("transport.websocket")
+
 	srv.srv.Handler = srv.serveWs
 
 	// 初始化session处理协程池
