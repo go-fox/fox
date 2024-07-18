@@ -47,6 +47,17 @@ func IsClientClosed(err error) bool {
 	return Code(err) == 499
 }
 
+// InternalServer new InternalServer error that is mapped to a 500 response.
+func InternalServer(reason, message string) *Error {
+	return New(500, reason, message)
+}
+
+// IsInternalServer determines if err is an error that indicates an Internal error.
+// It supports wrapped errors.
+func IsInternalServer(err error) bool {
+	return Code(err) == 500
+}
+
 // ServiceUnavailable new ServiceUnavailable error that is mapped to an HTTP 503 response.
 func ServiceUnavailable(reason, message string) *Error {
 	return New(503, reason, message)
