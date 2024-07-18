@@ -1,4 +1,4 @@
-module github.com/go-fox/contrilb/middleware/recovery
+module github.com/go-fox/fox/contrilb/middleware/recovery
 
 require github.com/go-fox/fox v0.0.1
 
