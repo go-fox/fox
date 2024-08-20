@@ -31,7 +31,6 @@ import (
 	"strconv"
 
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
-	"github.com/nacos-group/nacos-sdk-go/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/vo"
 
 	"github.com/go-fox/fox/registry"
@@ -44,27 +43,32 @@ var (
 
 // Registry is registry impl
 type Registry struct {
-	cli     naming_client.INamingClient
-	prefix  string
-	weight  float64
-	cluster string
-	group   string
-	kind    string
+	kind   string
+	cli    naming_client.INamingClient
+	config Config
 }
 
 // New create a nacos registry
 func New(opts ...Option) *Registry {
-	r := &Registry{
-		prefix:  "/fox",
-		cluster: "DEFAULT",
-		group:   constant.DEFAULT_GROUP,
-		weight:  100,
-		kind:    "grpc",
-	}
+	conf := DefaultConfig()
 	for _, opt := range opts {
-		opt(r)
+		opt(conf)
 	}
-	if r.cli == nil {
+	return NewWithConfig(conf)
+}
+
+// NewWithConfig create Registry with Config
+func NewWithConfig(configs ...*Config) *Registry {
+	conf := DefaultConfig()
+	if len(configs) > 0 {
+		conf = configs[0]
+	}
+	r := &Registry{
+		kind:   "grpc",
+		cli:    conf.Client,
+		config: *conf,
+	}
+	if conf.Client == nil {
 		panic("nacos client is nil")
 	}
 	return r
@@ -74,7 +78,7 @@ func New(opts ...Option) *Registry {
 func (r *Registry) GetService(ctx context.Context, serviceName string) ([]*registry.ServiceInstance, error) {
 	res, err := r.cli.SelectInstances(vo.SelectInstancesParam{
 		ServiceName: serviceName,
-		GroupName:   r.group,
+		GroupName:   r.config.Group,
 		HealthyOnly: true,
 	})
 	if err != nil {
@@ -100,7 +104,7 @@ func (r *Registry) GetService(ctx context.Context, serviceName string) ([]*regis
 
 // Watch creates a watcher according to the service name.
 func (r *Registry) Watch(ctx context.Context, serviceName string) (registry.Watcher, error) {
-	return newWatcher(ctx, r.cli, serviceName, r.group, r.kind, []string{r.cluster})
+	return newWatcher(ctx, r.cli, serviceName, r.config.Group, r.kind, []string{r.config.Cluster})
 }
 
 // Register register a sever
@@ -141,13 +145,13 @@ func (r *Registry) Register(_ context.Context, si *registry.ServiceInstance) err
 			Ip:          host,
 			Port:        uint64(p),
 			ServiceName: si.Name + "." + u.Scheme,
-			Weight:      r.weight,
+			Weight:      r.config.Weight,
 			Enable:      true,
 			Healthy:     true,
 			Ephemeral:   true,
 			Metadata:    rmd,
-			ClusterName: r.cluster,
-			GroupName:   r.group,
+			ClusterName: r.config.Cluster,
+			GroupName:   r.config.Group,
 		})
 		if e != nil {
 			return fmt.Errorf("RegisterInstance err %v,%v", e, endpoint)
@@ -191,12 +195,12 @@ func (r *Registry) Update(_ context.Context, si *registry.ServiceInstance) error
 			Ip:          host,
 			Port:        uint64(p),
 			ServiceName: si.Name + "." + u.Scheme,
-			Weight:      r.weight,
+			Weight:      r.config.Weight,
 			Enable:      true,
 			Ephemeral:   true,
 			Metadata:    rmd,
-			ClusterName: r.cluster,
-			GroupName:   r.group,
+			ClusterName: r.config.Cluster,
+			GroupName:   r.config.Group,
 		})
 		if e != nil {
 			return fmt.Errorf("RegisterInstance err %v,%v", e, endpoint)
@@ -224,8 +228,8 @@ func (r *Registry) Deregister(_ context.Context, service *registry.ServiceInstan
 			Ip:          host,
 			Port:        uint64(p),
 			ServiceName: service.Name + "." + u.Scheme,
-			GroupName:   r.group,
-			Cluster:     r.cluster,
+			GroupName:   r.config.Group,
+			Cluster:     r.config.Cluster,
 			Ephemeral:   true,
 		}); err != nil {
 			return err

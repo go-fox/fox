@@ -27,35 +27,37 @@ import (
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
+
+	"github.com/go-fox/fox/config"
 )
 
 // Option is creating a registry option
-type Option func(r *Registry)
+type Option func(r *Config)
 
 // WithClient with an etcd client option
 func WithClient(client *clientv3.Client) Option {
-	return func(r *Registry) {
-		r.client = client
+	return func(r *Config) {
+		r.Client = client
 	}
 }
 
 // WithPrefix with prefix option
 func WithPrefix(prefix string) Option {
-	return func(r *Registry) {
-		r.prefix = prefix
+	return func(r *Config) {
+		r.Prefix = prefix
 	}
 }
 
 // WithTTL with ttl option
 func WithTTL(ttl time.Duration) Option {
-	return func(r *Registry) {
-		r.ttl = ttl
+	return func(r *Config) {
+		r.TTL = config.Duration{Duration: ttl}
 	}
 }
 
 // WithMaxRetry with a max retry option
 func WithMaxRetry(maxRetry int) Option {
-	return func(r *Registry) {
-		r.maxRetry = maxRetry
+	return func(r *Config) {
+		r.MaxRetry = maxRetry
 	}
 }

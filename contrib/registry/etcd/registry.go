@@ -45,28 +45,35 @@ var (
 
 // Registry is registry impl
 type Registry struct {
-	prefix    string
 	ctx       context.Context
-	ttl       time.Duration
-	maxRetry  int
 	kv        clientv3.KV
 	client    *clientv3.Client
 	lease     clientv3.Lease
+	config    Config
 	cancelMap *smap.Map[string, context.CancelFunc]
 }
 
-// New creating Registry
+// New creating Registry with options
 func New(opts ...Option) *Registry {
+	conf := DefaultConfig()
+	for _, opt := range opts {
+		opt(conf)
+	}
+	return NewWithConfig(conf)
+}
+
+// NewWithConfig creating Registry with config
+func NewWithConfig(configs ...*Config) *Registry {
+	conf := DefaultConfig()
+	if len(configs) > 0 {
+		conf = configs[0]
+	}
 	r := &Registry{
 		ctx:       context.Background(),
-		prefix:    "/fox",
-		ttl:       time.Second * 15,
-		maxRetry:  5,
+		config:    *conf,
 		cancelMap: smap.New[string, context.CancelFunc](true),
 	}
-	for _, opt := range opts {
-		opt(r)
-	}
+
 	if r.client == nil {
 		panic("etcd client is nil")
 	}
@@ -76,7 +83,7 @@ func New(opts ...Option) *Registry {
 
 // GetService get service list
 func (r *Registry) GetService(ctx context.Context, serviceName string) ([]*registry.ServiceInstance, error) {
-	key := fmt.Sprintf("%s/%s", r.prefix, serviceName)
+	key := fmt.Sprintf("%s/%s", r.config.Prefix, serviceName)
 	resp, err := r.kv.Get(ctx, key, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
@@ -98,13 +105,13 @@ func (r *Registry) GetService(ctx context.Context, serviceName string) ([]*regis
 
 // Watch creates a watcher according to the service name.
 func (r *Registry) Watch(ctx context.Context, serviceName string) (registry.Watcher, error) {
-	key := fmt.Sprintf("%s/%s", r.prefix, serviceName)
+	key := fmt.Sprintf("%s/%s", r.config.Prefix, serviceName)
 	return newWatcher(ctx, key, serviceName, r.client)
 }
 
 // Register register a sever
 func (r *Registry) Register(ctx context.Context, service *registry.ServiceInstance) error {
-	key := fmt.Sprintf("%s/%s/%s", r.prefix, service.Name, service.ID)
+	key := fmt.Sprintf("%s/%s/%s", r.config.Prefix, service.Name, service.ID)
 	value, err := encoding.Marshal(service)
 	if err != nil {
 		return err
@@ -126,7 +133,7 @@ func (r *Registry) Register(ctx context.Context, service *registry.ServiceInstan
 
 // Update update sever info
 func (r *Registry) Update(ctx context.Context, service *registry.ServiceInstance) error {
-	key := fmt.Sprintf("%s/%s/%s", r.prefix, service.Name, service.ID)
+	key := fmt.Sprintf("%s/%s/%s", r.config.Prefix, service.Name, service.ID)
 	value, err := encoding.Marshal(service)
 	if err != nil {
 		return err
@@ -150,13 +157,13 @@ func (r *Registry) Deregister(ctx context.Context, service *registry.ServiceInst
 		cancel()
 		r.cancelMap.Del(service.ID)
 	}
-	key := fmt.Sprintf("%s/%s/%s", r.prefix, service.Name, service.ID)
+	key := fmt.Sprintf("%s/%s/%s", r.config.Prefix, service.Name, service.ID)
 	_, err := r.client.Delete(ctx, key)
 	return err
 }
 
 func (r *Registry) register(ctx context.Context, key string, value []byte) (clientv3.LeaseID, error) {
-	grant, err := r.lease.Grant(ctx, int64(r.ttl.Seconds()))
+	grant, err := r.lease.Grant(ctx, int64(r.config.TTL.Seconds()))
 	if err != nil {
 		return 0, err
 	}
@@ -177,7 +184,7 @@ func (r *Registry) heartBeat(ctx context.Context, leaseID clientv3.LeaseID, key 
 		if curLeaseID == 0 {
 			// try to registerWithKV
 			var retreat []int
-			for retryCnt := 0; retryCnt < r.maxRetry; retryCnt++ {
+			for retryCnt := 0; retryCnt < r.config.MaxRetry; retryCnt++ {
 				if ctx.Err() != nil {
 					return
 				}

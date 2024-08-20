@@ -23,36 +23,37 @@
 // SOFTWARE.
 package nacos
 
+import "C"
 import (
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
 )
 
 // Option is registry option
-type Option func(r *Registry)
+type Option func(r *Config)
 
 // WithClient with a nacos client option
 func WithClient(client naming_client.INamingClient) Option {
-	return func(r *Registry) {
-		r.cli = client
+	return func(c *Config) {
+		c.Client = client
 	}
 }
 
 // WithPrefix with a prefix option
 func WithPrefix(prefix string) Option {
-	return func(r *Registry) { r.prefix = prefix }
+	return func(r *Config) { r.Prefix = prefix }
 }
 
 // WithWeight with a weight option.
 func WithWeight(weight float64) Option {
-	return func(r *Registry) { r.weight = weight }
+	return func(c *Config) { c.Weight = weight }
 }
 
 // WithCluster with a cluster option.
 func WithCluster(cluster string) Option {
-	return func(r *Registry) { r.cluster = cluster }
+	return func(c *Config) { c.Cluster = cluster }
 }
 
 // WithGroup with a group option.
 func WithGroup(group string) Option {
-	return func(r *Registry) { r.group = group }
+	return func(c *Config) { c.Group = group }
 }
