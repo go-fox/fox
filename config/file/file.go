@@ -99,7 +99,7 @@ func (f *file) loadFile(path string) (*config.DataSet, error) {
 		return nil, err
 	}
 	return &config.DataSet{
-		Key:       strings.TrimSuffix(filepath.Base(info.Name()), filepath.Ext(info.Name())),
+		Key:       info.Name(),
 		Format:    strings.TrimPrefix(filepath.Ext(info.Name()), "."),
 		Value:     data,
 		Timestamp: info.ModTime(),

@@ -30,6 +30,7 @@ import (
 	"github.com/google/safetext/yamltemplate"
 
 	"github.com/go-fox/fox/codec"
+	"github.com/go-fox/fox/codec/json"
 )
 
 // Decoder is config decoder.
@@ -106,12 +107,12 @@ func defaultDecoder(src *DataSet, target map[string]interface{}) error {
 		}
 		return nil
 	}
-	encoding, err := codec.GetCodec(src.Format)
-	if err != nil {
-		return err
+	encoding := codec.GetCodec(src.Format)
+	if encoding == nil {
+		encoding = codec.GetCodec(json.Name)
 	}
 	sub := map[string]interface{}{}
-	err = encoding.Unmarshal(src.Value, &sub)
+	err := encoding.Unmarshal(src.Value, &sub)
 	if err != nil {
 		return err
 	}

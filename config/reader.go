@@ -67,15 +67,7 @@ func (r *reader) Merge(set ...*DataSet) error {
 			slog.Error("Failed to config decode", "error", err, "key", data.Key, "value", string(data.Value))
 			return err
 		}
-		var mergeMap any
-		if len(data.Key) > 0 {
-			mergeMap = map[string]interface{}{
-				data.Key: convertMap(next),
-			}
-		} else {
-			mergeMap = convertMap(next)
-		}
-		if err := r.opts.merge(&merged, mergeMap); err != nil {
+		if err := r.opts.merge(&merged, convertMap(next)); err != nil {
 			slog.Error("Failed to merge data", "error", err, "key", data.Key, "value", string(data.Value))
 			return err
 		}

@@ -26,64 +26,38 @@ package config
 var defaultConfig = New()
 
 // SetDefault Set default config
-//
-//	@param config Config
-//	@player
 func SetDefault(config Config) {
 	defaultConfig = config
 }
 
 // Load load resources
-//
-//	@param sources ...Source
-//	@return error
-//	@player
 func Load(sources ...Source) error {
 	return defaultConfig.Load(sources...)
 }
 
 // MustLoad resources must be loaded. if there is an error, simply panic
-//
-//	@param sources ...Source
-//	@player
 func MustLoad(sources ...Source) {
 	if err := Load(sources...); err != nil {
 		panic(err)
 	}
 }
 
-// Get get a value for defaultConfig
-//
-//	@param path string
-//	@return Value
-//	@player
+// Get is get a value for defaultConfig
 func Get(path string) Value {
 	return defaultConfig.Get(path)
 }
 
 // Scan scans the value to the specified structure for defaultConfig
-//
-//	@param v any
-//	@return error
-//	@player
 func Scan(v any) error {
 	return defaultConfig.Scan(v)
 }
 
 // Watch Configure Observer
-//
-//	@param key string
-//	@param o Observer
-//	@return error
-//	@player
 func Watch(key string, o Observer) error {
 	return defaultConfig.Watch(key, o)
 }
 
 // Close closer all Observer
-//
-//	@return error
-//	@player
 func Close() error {
 	return defaultConfig.Close()
 }

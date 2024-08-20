@@ -45,10 +45,7 @@ func DefaultResponseEncoder(ss *Session, r *protocol.Request, reply *protocol.Re
 	if v == nil {
 		return nil
 	}
-	encoding, err := CodecForRequest(r, "Content-Type")
-	if err != nil {
-		return err
-	}
+	encoding := CodecForRequest(r, "Content-Type")
 	data, err := encoding.Marshal(v)
 	if err != nil {
 		return err
@@ -70,27 +67,22 @@ func DefaultErrorEncoder(ss *Session, r *protocol.Request, err error) {
 
 // DefaultRequestDecoder default request decoder
 func DefaultRequestDecoder(r *protocol.Request, v any) error {
-	encoding, _ := codec.GetCodec(proto.Name)
+	encoding := codec.GetCodec(proto.Name)
 	contentType := headerCarrier(r.Metadata).Get("Content-Type")
 	if len(contentType) > 0 {
-		getCodec, err := codec.GetCodec(contentType)
-		if err != nil {
-			return err
+		e := codec.GetCodec(contentType)
+		if e != nil {
+			encoding = e
 		}
-		encoding = getCodec
 	}
 	return encoding.Unmarshal(r.Data, v)
 }
 
 // CodecForRequest get encoding.Codec via http.Request
-func CodecForRequest(r *protocol.Request, name string) (codec.Codec, error) {
-	encoding, err := codec.GetCodec(r.Metadata[name])
-	if err != nil {
-		encoding, err = codec.GetCodec("proto")
-		if err != nil {
-			return nil, err
-		}
-		return encoding, nil
+func CodecForRequest(r *protocol.Request, name string) codec.Codec {
+	encoding := codec.GetCodec(r.Metadata[name])
+	if encoding != nil {
+		return encoding
 	}
-	return encoding, nil
+	return codec.GetCodec(proto.Name)
 }

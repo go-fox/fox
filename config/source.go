@@ -41,7 +41,7 @@ type Source interface {
 	Watch() (Watcher, error)
 }
 
-// Watcher 监听器
+// Watcher watcher definition
 type Watcher interface {
 	// Next source change
 	Next() ([]*DataSet, error)

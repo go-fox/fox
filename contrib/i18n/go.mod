@@ -3,7 +3,7 @@ module github.com/go-fox/contrilb/i18n
 require (
 	dario.cat/mergo v1.0.0
 	github.com/go-fox/fox v0.0.1
-	github.com/go-fox/sugar v0.0.0-20240606100759-2030575881d7
+	github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e
 	google.golang.org/protobuf v1.34.2
 )
 

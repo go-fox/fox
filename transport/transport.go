@@ -26,6 +26,13 @@ package transport
 import (
 	"context"
 	"net/url"
+	// init encoding
+	_ "github.com/go-fox/fox/codec/json"
+	_ "github.com/go-fox/fox/codec/proto"
+	_ "github.com/go-fox/fox/codec/toml"
+	_ "github.com/go-fox/fox/codec/xml"
+	_ "github.com/go-fox/fox/codec/yaml"
+	"github.com/go-fox/fox/selector"
 )
 
 // Kind defines the type of Transport
@@ -75,7 +82,10 @@ type Transporter interface {
 	ReplyHeader() Header
 }
 
-type transportCtxKey struct{}
+type (
+	transportCtxKey struct{}
+	peerKey         struct{}
+)
 
 // NewServerContext returns a new Context that carries Transport value.
 func NewServerContext(ctx context.Context, tr Transporter) context.Context {
@@ -96,5 +106,16 @@ func NewClientContext(ctx context.Context, tr Transporter) context.Context {
 // FromClientContext returns the Transport value stored in ctx, if any.
 func FromClientContext(ctx context.Context) (tr Transporter, ok bool) {
 	tr, ok = ctx.Value(transportCtxKey{}).(Transporter)
+	return
+}
+
+// NewPeerClient returns a new context that carries selector.Peer value.
+func NewPeerClient(ctx context.Context, peer *selector.Peer) context.Context {
+	return context.WithValue(ctx, peerKey{}, peer)
+}
+
+// FromPeerContext returns the selector.Peer value stored in ctx, if any.
+func FromPeerContext(ctx context.Context) (peer *selector.Peer, ok bool) {
+	peer, ok = ctx.Value(peerKey{}).(*selector.Peer)
 	return
 }

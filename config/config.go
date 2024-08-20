@@ -67,10 +67,7 @@ type config struct {
 	watchers  []Watcher
 }
 
-// New 构造函数
-//
-//	@param opts ...Option 创建参数
-//	@return Config
+// New create a Config
 func New(opts ...Option) Config {
 	o := options{
 		decoder:  defaultDecoder,

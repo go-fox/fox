@@ -50,8 +50,8 @@ func (s *Server) unaryServerInterceptor() grpc.UnaryServerInterceptor {
 			tr.endpoint = s.endpoint.String()
 		}
 		ctx = transport.NewServerContext(ctx, tr)
-		if s.timeout > 0 {
-			ctx, cancel = context.WithTimeout(ctx, s.timeout)
+		if s.config.Timeout > 0 {
+			ctx, cancel = context.WithTimeout(ctx, s.config.Timeout)
 			defer cancel()
 		}
 		h := func(ctx context.Context, req interface{}) (interface{}, error) {

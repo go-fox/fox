@@ -27,12 +27,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log/slog"
-	"math"
 	"net"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/fasthttp/websocket"
 	"github.com/go-fox/sugar/container/smap"
@@ -41,13 +38,10 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/go-fox/fox/api/protocol"
-	"github.com/go-fox/fox/codec"
-	"github.com/go-fox/fox/codec/proto"
 	"github.com/go-fox/fox/errors"
 
 	"github.com/panjf2000/ants/v2"
 
-	"github.com/go-fox/fox/internal/matcher"
 	"github.com/go-fox/fox/middleware"
 	"github.com/go-fox/fox/transport"
 )
@@ -61,69 +55,57 @@ var (
 
 // Server is impl transport.Server
 type Server struct {
-	srv                     *fasthttp.Server
-	baseCtx                 context.Context
-	tlsConf                 *tls.Config
-	lis                     net.Listener
-	err                     error
-	network                 string
-	address                 string
-	endpoint                *url.URL
-	middleware              matcher.Matcher
-	handlerMap              *smap.Map[string, HandlerFunc]
-	logger                  *slog.Logger
-	upgrader                websocket.FastHTTPUpgrader
-	sessionPoolSize         int
-	handlerPoolSize         int
-	timeout                 time.Duration
-	sessionPool             *ants.Pool
-	handlerPool             *ants.Pool
-	codec                   codec.Codec
-	ms                      []middleware.Middleware
-	authorization           AuthorizationHandler
-	connectedInterceptor    ConnectedInterceptor
-	disconnectedInterceptor DisconnectedInterceptor
-	dec                     DecoderRequestFunc
-	enc                     EncoderResponseFunc
-	ene                     EncoderErrorFunc
+	baseCtx     context.Context
+	srv         *fasthttp.Server
+	endpoint    *url.URL
+	config      *ServerConfig
+	sessionPool *ants.Pool
+	handlerPool *ants.Pool
+	handlerMap  *smap.Map[string, HandlerFunc]
 }
 
 // NewServer new a websocket server by options
 func NewServer(opts ...ServerOption) *Server {
+	c := DefaultServerConfig()
+	for _, opt := range opts {
+		opt(c)
+	}
+	return NewServerWithConfig(c)
+}
+
+// NewServerWithConfig create websocket with server config
+func NewServerWithConfig(cs ...*ServerConfig) *Server {
+	c := DefaultServerConfig()
+	if len(cs) > 0 {
+		c = cs[0]
+	}
 	srv := &Server{
-		network: "tcp",
-		address: ":0",
+		config:     c,
+		handlerMap: smap.New[string, HandlerFunc](),
 		srv: &fasthttp.Server{
 			Name: "websocket",
 		},
-		sessionPoolSize: math.MaxInt32,
-		handlerPoolSize: math.MaxInt32,
-		logger:          slog.Default(),
-		codec:           proto.Codec{},
-		handlerMap:      smap.New[string, HandlerFunc](),
-		dec:             DefaultRequestDecoder,
-		enc:             DefaultResponseEncoder,
-		ene:             DefaultErrorEncoder,
-		upgrader: websocket.FastHTTPUpgrader{
-			ReadBufferSize:  2048,
-			WriteBufferSize: 2048,
-		},
 	}
-	for _, opt := range opts {
-		opt(srv)
+
+	if c.KeyFile != "" && c.CertFile != "" && c.tlsConf == nil {
+		cert, err := tls.LoadX509KeyPair(c.CertFile, c.KeyFile)
+		if err != nil {
+			panic(err)
+		}
+		c.tlsConf = &tls.Config{Certificates: []tls.Certificate{cert}}
 	}
-	srv.logger = srv.logger.With("transport.websocket")
 
 	srv.srv.Handler = srv.serveWs
 
 	// 初始化session处理协程池
-	clientPool, err := ants.NewPool(srv.sessionPoolSize)
+	clientPool, err := ants.NewPool(c.SessionPoolSize)
 	if err != nil {
 		panic(err)
 	}
 	srv.sessionPool = clientPool
+
 	// 初始化request处理协程池
-	handlerPool, err := ants.NewPool(srv.handlerPoolSize)
+	handlerPool, err := ants.NewPool(c.HandlerPoolSize)
 	if err != nil {
 		panic(err)
 	}
@@ -134,22 +116,23 @@ func NewServer(opts ...ServerOption) *Server {
 // Endpoint 获取地址
 func (s *Server) Endpoint() (*url.URL, error) {
 	if err := s.listenAndEndpoint(); err != nil {
-		return nil, s.err
+		return nil, err
 	}
 	return s.endpoint, nil
 }
 
 // Start is start this server
 func (s *Server) Start(ctx context.Context) error {
+	c := s.config
 	if err := s.listenAndEndpoint(); err != nil {
 		return err
 	}
 	s.baseCtx = ctx
-	s.logger.Info(fmt.Sprintf("[HTTP] server listening on: %s", s.lis.Addr().String()))
+	c.logger.Info(fmt.Sprintf("[HTTP] server listening on: %s", c.lis.Addr().String()))
 	var err error
-	listener := s.lis
-	if s.tlsConf != nil {
-		err = s.srv.Serve(tls.NewListener(listener, s.tlsConf))
+	listener := c.lis
+	if c.tlsConf != nil {
+		err = s.srv.Serve(tls.NewListener(listener, c.tlsConf))
 	} else {
 		err = s.srv.Serve(listener)
 	}
@@ -161,13 +144,13 @@ func (s *Server) Start(ctx context.Context) error {
 
 // Stop is stop this server
 func (s *Server) Stop(ctx context.Context) error {
-	s.logger.Info("[HTTP] server stopping")
+	s.config.logger.Info("[HTTP] server stopping")
 	return s.srv.ShutdownWithContext(ctx)
 }
 
 // Use uses service middleware with selector.
 func (s *Server) Use(selector string, m ...middleware.Middleware) {
-	s.middleware.Add(selector, m...)
+	s.config.middleware.Add(selector, m...)
 }
 
 // Handler 设置handler
@@ -177,7 +160,7 @@ func (s *Server) Handler(operator string, handler HandlerFunc) {
 
 // serveWs is server websocket
 func (s *Server) serveWs(ctx *fasthttp.RequestCtx) {
-	if err := s.upgrader.Upgrade(ctx, s.handlerConn); err != nil {
+	if err := s.config.upgrader.Upgrade(ctx, s.handlerConn); err != nil {
 		ctx.Error(err.Error(), fasthttp.StatusServiceUnavailable)
 	}
 }
@@ -185,12 +168,12 @@ func (s *Server) serveWs(ctx *fasthttp.RequestCtx) {
 // handlerConn conn process handler
 func (s *Server) handlerConn(conn *websocket.Conn) {
 	// 1.借用session
-	ss := acquireSession(s.baseCtx, s.codec, conn)
+	ss := acquireSession(s.baseCtx, s.config.codec, conn)
 	defer releaseSession(ss)
 
 	// 2.处理客户端链接成功
 	if err := s.onConnected(ss); err != nil {
-		s.logger.Error("[WS] onConnected error", "error", errors.FromError(err).WithStack())
+		s.config.logger.Error("[WS] onConnected error", "error", errors.FromError(err).WithStack())
 		_ = ss.Close()
 		return
 	}
@@ -204,7 +187,7 @@ func (s *Server) handlerConn(conn *websocket.Conn) {
 		default:
 			if err := s.receiveRequest(ss); err != nil {
 				if !errors.IsClientClosed(err) {
-					s.logger.Error("[WS] receiveRequest error", "error", errors.FromError(err).WithStack())
+					s.config.logger.Error("[WS] receiveRequest error", "error", errors.FromError(err).WithStack())
 					continue
 				}
 				return
@@ -216,15 +199,15 @@ func (s *Server) handlerConn(conn *websocket.Conn) {
 // onConnected client connected process handler
 func (s *Server) onConnected(ss *Session) error {
 	// 1.拦截器处理
-	if s.connectedInterceptor != nil {
-		if err := s.connectedInterceptor(ss); err != nil {
+	if s.config.connectedInterceptor != nil {
+		if err := s.config.connectedInterceptor(ss); err != nil {
 			return err
 		}
 	}
 
 	// 2.认证处理
-	if s.authorization != nil {
-		if err := s.authorization(ss); err != nil {
+	if s.config.authorization != nil {
+		if err := s.config.authorization(ss); err != nil {
 			return err
 		}
 	}
@@ -234,8 +217,8 @@ func (s *Server) onConnected(ss *Session) error {
 
 // onDisconnected client disconnected handler
 func (s *Server) onDisconnected(ss *Session) {
-	if s.disconnectedInterceptor != nil {
-		s.disconnectedInterceptor(ss)
+	if s.config.disconnectedInterceptor != nil {
+		s.config.disconnectedInterceptor(ss)
 	}
 }
 
@@ -252,7 +235,7 @@ func (s *Server) receiveRequest(ss *Session) error {
 	if err := s.handlerPool.Submit(func() {
 		defer protocol.ReleaseRequest(req)
 		if err := s.onReceiveRequest(ss, req); err != nil {
-			s.ene(ss, req, err)
+			s.config.ene(ss, req, err)
 		}
 	}); err != nil {
 		protocol.ReleaseRequest(req)
@@ -275,8 +258,8 @@ func (s *Server) onReceiveRequest(sess *Session, req *protocol.Request) error {
 			ctx    context.Context
 			cancel context.CancelFunc
 		)
-		if s.timeout > 0 {
-			ctx, cancel = context.WithTimeout(foxCtx.Context, s.timeout)
+		if s.config.Timeout > 0 {
+			ctx, cancel = context.WithTimeout(foxCtx.Context, s.config.Timeout)
 		} else {
 			ctx, cancel = context.WithCancel(foxCtx.Context)
 		}
@@ -300,19 +283,19 @@ func (s *Server) onReceiveRequest(sess *Session, req *protocol.Request) error {
 
 // listenAndEndpoint is get server start address
 func (s *Server) listenAndEndpoint() error {
-	if s.lis == nil {
-		lis, err := net.Listen(s.network, s.address)
+	if s.config.lis == nil {
+		lis, err := net.Listen(s.config.Network, s.config.Address)
 		if err != nil {
 			return err
 		}
-		s.lis = lis
+		s.config.lis = lis
 	}
 	if s.endpoint == nil {
-		addr, err := shost.Extract(s.address, s.lis)
+		addr, err := shost.Extract(s.config.Address, s.config.lis)
 		if err != nil {
 			return err
 		}
-		s.endpoint = surl.NewURL(surl.Scheme("http", s.tlsConf != nil), addr)
+		s.endpoint = surl.NewURL(surl.Scheme("http", s.config.tlsConf != nil), addr)
 	}
 	return nil
 }

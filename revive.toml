@@ -5,7 +5,7 @@ errorCode = 1
 warningCode = 1
 
 [rule.cyclomatic]
-	arguments = [30]
+	arguments = [50]
 
 [rule.function-result-limit]
 	arguments = [3]

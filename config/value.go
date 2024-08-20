@@ -24,16 +24,14 @@
 package config
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/go-fox/sugar/container/satomic"
-	"google.golang.org/protobuf/proto"
 
-	internalJson "github.com/go-fox/fox/codec/json"
+	"github.com/go-fox/fox/codec"
+	"github.com/go-fox/fox/codec/json"
 )
 
 var _ Value = (*atomicValue)(nil)
@@ -66,11 +64,6 @@ type atomicValue struct {
 }
 
 // Slice implements the interface Slice for Value
-//
-//	@receiver a
-//	@return []Value
-//	@return error
-//	@player
 func (a *atomicValue) Slice() ([]Value, error) {
 	vals, ok := a.Load().([]interface{})
 	if !ok {
@@ -84,11 +77,6 @@ func (a *atomicValue) Slice() ([]Value, error) {
 }
 
 // Map implements the interface Map for Value
-//
-//	@receiver a
-//	@return map[string]Value
-//	@return error
-//	@player
 func (a *atomicValue) Map() (map[string]Value, error) {
 	vals, ok := a.Load().(map[string]interface{})
 	if !ok {
@@ -103,23 +91,14 @@ func (a *atomicValue) Map() (map[string]Value, error) {
 	return m, nil
 }
 
-// Scan
-//
-//	@receiver a
-//	@param val interface{}
-//	@return error
-//	@player
+// Scan scan value to struct
 func (a *atomicValue) Scan(val interface{}) error {
-	data, err := json.Marshal(a.Load())
+	encoding := codec.GetCodec(json.Name)
+	data, err := encoding.Marshal(a.Load())
 	if err != nil {
 		return err
 	}
-	if pb, ok := val.(proto.Message); ok {
-		return internalJson.UnmarshalOptions.Unmarshal(data, pb)
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.UseNumber()
-	return decoder.Decode(val)
+	return encoding.Unmarshal(data, val)
 }
 
 type errValue struct {

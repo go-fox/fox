@@ -1,12 +1,15 @@
 package errors
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/go-fox/fox/internal/bytesconv"
 )
 
 var _ error = (*Error)(nil)
@@ -25,7 +28,16 @@ type Error struct {
 
 // Error impl error.Error
 func (e *Error) Error() string {
-	return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v cause = %v stack= %v", e.Code, e.Reason, e.Message, e.Metadata, e.cause, e.stack)
+	if e.stack != nil {
+		return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v cause = %v stack= %v", e.Code, e.Reason, e.Message, e.Metadata, e.cause, e.stack)
+	}
+	return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v cause = %v ", e.Code, e.Reason, e.Message, e.Metadata, e.cause)
+}
+
+// JSON json data
+func (e *Error) JSON() string {
+	v, _ := json.Marshal(e)
+	return bytesconv.BytesToString(v)
 }
 
 // Unwrap get Error.cause

@@ -36,9 +36,7 @@ import (
 	grpcmd "google.golang.org/grpc/metadata"
 
 	"github.com/go-fox/fox/middleware"
-	"github.com/go-fox/fox/registry"
 	"github.com/go-fox/fox/selector"
-	"github.com/go-fox/fox/selector/balancer/wrr"
 	"github.com/go-fox/fox/transport"
 	"github.com/go-fox/fox/transport/grpc/resolver/discovery"
 )
@@ -56,77 +54,81 @@ func init() {
 
 // Client is grpc client
 type Client struct {
-	endpoint               string
-	tlsConf                *tls.Config
-	timeout                time.Duration
-	discovery              registry.Discovery
-	middleware             []middleware.Middleware
-	unaryInterceptors      []grpc.UnaryClientInterceptor
-	streamInterceptors     []grpc.StreamClientInterceptor
-	grpcOpts               []grpc.DialOption
-	balancerName           string
-	filters                []selector.NodeFilter
-	healthCheckConfig      string
-	printDiscoveryDebugLog bool
-	insecure               bool
-	debug                  bool
+	config *ClientConfig
 	*grpc.ClientConn
 }
 
 // NewClient create a grpc client
 func NewClient(opts ...ClientOption) *Client {
-	client := &Client{
-		timeout:                2000 * time.Millisecond,
-		balancerName:           wrr.Name,
-		printDiscoveryDebugLog: true,
-		insecure:               true,
-		healthCheckConfig:      `,"healthCheckConfig":{"serviceName":""}`,
-	}
+	c := DefaultClientConfig()
 	for _, opt := range opts {
-		opt(client)
+		opt(c)
 	}
-	unaryInterceptors := []grpc.UnaryClientInterceptor{
-		client.unaryClientInterceptor(client.middleware, client.timeout, client.filters),
+	return NewClientWithConfig(c)
+}
+
+// NewClientWithConfig create a client with client config
+func NewClientWithConfig(cs ...*ClientConfig) *Client {
+	c := DefaultClientConfig()
+	if len(cs) > 0 {
+		c = cs[0]
 	}
-	streamInterceptors := []grpc.StreamClientInterceptor{
-		client.streamClientInterceptor(client.filters),
+	client := &Client{
+		config: c,
+	}
+	if c.KeyFile != "" && c.CertFile != "" && c.tlsConf == nil {
+		cert, err := tls.LoadX509KeyPair(c.CertFile, c.KeyFile)
+		if err != nil {
+			panic(err)
+		}
+		c.tlsConf = &tls.Config{Certificates: []tls.Certificate{cert}}
 	}
 
-	if len(client.unaryInterceptors) > 0 {
-		unaryInterceptors = append(unaryInterceptors, client.unaryInterceptors...)
+	unaryInterceptors := []grpc.UnaryClientInterceptor{
+		client.unaryClientInterceptor(c.middleware, c.Timeout, c.filters),
 	}
-	if len(client.streamInterceptors) > 0 {
-		streamInterceptors = append(streamInterceptors, client.streamInterceptors...)
+	streamInterceptors := []grpc.StreamClientInterceptor{
+		client.streamClientInterceptor(c.filters),
+	}
+
+	if len(c.unaryInterceptors) > 0 {
+		unaryInterceptors = append(unaryInterceptors, c.unaryInterceptors...)
+	}
+	if len(c.streamInterceptors) > 0 {
+		streamInterceptors = append(streamInterceptors, c.streamInterceptors...)
 	}
 	grpcOpts := []grpc.DialOption{
 		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]%s}`,
-			client.balancerName, client.healthCheckConfig)),
+			c.BalancerName, c.healthCheckConfig)),
 		grpc.WithChainUnaryInterceptor(unaryInterceptors...),
 		grpc.WithChainStreamInterceptor(streamInterceptors...),
 	}
 
-	if client.discovery != nil {
+	if c.discovery != nil {
 		grpcOpts = append(grpcOpts,
 			grpc.WithResolvers(
 				discovery.NewBuilder(
-					client.discovery,
-					discovery.WithDebug(client.debug),
-					discovery.WithInsecure(client.insecure),
+					c.discovery,
+					discovery.WithDebug(c.Debug),
+					discovery.WithInsecure(c.Insecure),
 				)))
 	}
-	if client.insecure {
+	if c.Insecure {
 		grpcOpts = append(grpcOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
-	if client.tlsConf != nil {
-		grpcOpts = append(grpcOpts, grpc.WithTransportCredentials(credentials.NewTLS(client.tlsConf)))
+
+	if c.tlsConf != nil {
+		grpcOpts = append(grpcOpts, grpc.WithTransportCredentials(credentials.NewTLS(c.tlsConf)))
 	}
-	if len(client.grpcOpts) > 0 {
-		grpcOpts = append(grpcOpts, client.grpcOpts...)
+
+	if len(c.grpcOpts) > 0 {
+		grpcOpts = append(grpcOpts, c.grpcOpts...)
 	}
-	conn, err := grpc.NewClient(client.endpoint, grpcOpts...)
+	conn, err := grpc.NewClient(c.Endpoint, grpcOpts...)
 	if err != nil {
 		panic(err)
 	}
+
 	client.ClientConn = conn
 	return client
 }

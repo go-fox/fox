@@ -61,5 +61,8 @@ func (b *balancer) Pick(ctx context.Context, nodes []selector.WeightedNode) (sel
 type balancerBuilder struct{}
 
 func (b *balancerBuilder) Build() selector.Balancer {
-	return &balancer{}
+	return &balancer{
+		currentWeight: make(map[string]float64),
+		mu:            sync.Mutex{},
+	}
 }

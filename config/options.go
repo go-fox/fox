@@ -28,6 +28,7 @@ import (
 	"strings"
 
 	"github.com/go-fox/fox/codec"
+	"github.com/go-fox/fox/codec/json"
 )
 
 // Decoder is config decoder.
@@ -94,9 +95,9 @@ func defaultDecoder(src *DataSet, target map[string]interface{}) error {
 		}
 		return nil
 	}
-	encoding, err := codec.GetCodec(src.Format)
-	if err != nil {
-		return err
+	encoding := codec.GetCodec(src.Format)
+	if encoding == nil {
+		encoding = codec.GetCodec(json.Name)
 	}
 	return encoding.Unmarshal(src.Value, &target)
 }

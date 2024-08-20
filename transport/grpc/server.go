@@ -27,10 +27,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log/slog"
 	"net"
 	"net/url"
-	"time"
 
 	"github.com/go-fox/sugar/util/shost"
 	"github.com/go-fox/sugar/util/surl"
@@ -53,37 +51,44 @@ var (
 // Server Grpc服务
 type Server struct {
 	*grpc.Server
-	baseCtx            context.Context
-	tlsConf            *tls.Config
-	lis                net.Listener
-	err                error
-	network            string
-	address            string
-	endpoint           *url.URL
-	timeout            time.Duration
-	middleware         matcher.Matcher
-	unaryInterceptors  []grpc.UnaryServerInterceptor
-	streamInterceptors []grpc.StreamServerInterceptor
-	grpcOpts           []grpc.ServerOption
-	health             *health.Server
-	customHealth       bool
-	log                *slog.Logger
-	adminClean         func()
+	endpoint   *url.URL
+	baseCtx    context.Context
+	config     *ServerConfig
+	health     *health.Server
+	middleware matcher.Matcher
+	adminClean func()
 }
 
-// NewServer 构造函数
+// NewServer create server
 func NewServer(opts ...ServerOption) *Server {
+	conf := DefaultSeverConfig()
+	for _, opt := range opts {
+		opt(conf)
+	}
+	return NewServerWithConfig(conf)
+}
+
+// NewServerWithConfig create server with config
+func NewServerWithConfig(cs ...*ServerConfig) *Server {
+	conf := DefaultSeverConfig()
+	if len(cs) > 0 {
+		conf = cs[0]
+	}
 	srv := &Server{
 		baseCtx:    context.Background(),
-		network:    "tcp",
-		address:    ":0",
-		timeout:    1 * time.Second,
+		config:     conf,
 		health:     health.NewServer(),
 		middleware: matcher.New(),
-		log:        slog.With(slog.String("mod", "grpc.sever")),
 	}
-	for _, opt := range opts {
-		opt(srv)
+	if conf.KeyFile != "" && conf.CertFile != "" && conf.tlsConf == nil {
+		var err error
+		conf.tlsConf = new(tls.Config)
+		conf.tlsConf.NextProtos = append(conf.tlsConf.NextProtos, "http/1.1")
+		conf.tlsConf.Certificates = make([]tls.Certificate, 1)
+		conf.tlsConf.Certificates[0], err = tls.LoadX509KeyPair(conf.CertFile, conf.KeyFile)
+		if err != nil {
+			panic(err)
+		}
 	}
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		srv.unaryServerInterceptor(),
@@ -91,26 +96,26 @@ func NewServer(opts ...ServerOption) *Server {
 	streamInterceptors := []grpc.StreamServerInterceptor{
 		srv.streamServerInterceptor(),
 	}
-	if len(srv.unaryInterceptors) > 0 {
-		unaryInterceptors = append(unaryInterceptors, srv.unaryInterceptors...)
+	if len(conf.unaryInterceptors) > 0 {
+		unaryInterceptors = append(unaryInterceptors, conf.unaryInterceptors...)
 	}
-	if len(srv.streamInterceptors) > 0 {
-		streamInterceptors = append(streamInterceptors, srv.streamInterceptors...)
+	if len(conf.streamInterceptors) > 0 {
+		streamInterceptors = append(streamInterceptors, conf.streamInterceptors...)
 	}
 	grpcOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(unaryInterceptors...),
 		grpc.ChainStreamInterceptor(streamInterceptors...),
 	}
-	if srv.tlsConf != nil {
-		grpcOpts = append(grpcOpts, grpc.Creds(credentials.NewTLS(srv.tlsConf)))
+	if conf.tlsConf != nil {
+		grpcOpts = append(grpcOpts, grpc.Creds(credentials.NewTLS(conf.tlsConf)))
 	}
-	if len(srv.grpcOpts) > 0 {
-		grpcOpts = append(grpcOpts, srv.grpcOpts...)
+	if len(conf.grpcOpts) > 0 {
+		grpcOpts = append(grpcOpts, conf.grpcOpts...)
 	}
 	srv.Server = grpc.NewServer(grpcOpts...)
 	srv.adminClean, _ = admin.Register(srv.Server)
 	// health check
-	if !srv.customHealth {
+	if !conf.CustomHealth {
 		grpc_health_v1.RegisterHealthServer(srv.Server, srv.health)
 	}
 	return srv
@@ -140,8 +145,8 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 	s.baseCtx = ctx
 	s.health.Resume()
-	s.log.Info(fmt.Sprintf("[gRPC] server listening on: %s", s.lis.Addr().String()))
-	return s.Serve(s.lis)
+	s.config.log.Info(fmt.Sprintf("[gRPC] server listening on: %s", s.config.lis.Addr().String()))
+	return s.Serve(s.config.lis)
 }
 
 // Stop 停止
@@ -151,25 +156,25 @@ func (s *Server) Stop(ctx context.Context) error {
 	}
 	s.GracefulStop()
 	s.health.Shutdown()
-	s.log.Info("[gRPC] server stopping")
+	s.config.log.Info("[gRPC] server stopping")
 	return nil
 }
 
 // listenAndEndpoint is get server start address
 func (s *Server) listenAndEndpoint() error {
-	if s.lis == nil {
-		lis, err := net.Listen(s.network, s.address)
+	if s.config.lis == nil {
+		lis, err := net.Listen(s.config.Network, s.config.Address)
 		if err != nil {
 			return err
 		}
-		s.lis = lis
+		s.config.lis = lis
 	}
 	if s.endpoint == nil {
-		addr, err := shost.Extract(s.address, s.lis)
+		addr, err := shost.Extract(s.config.Address, s.config.lis)
 		if err != nil {
 			return err
 		}
-		s.endpoint = surl.NewURL(surl.Scheme("grpc", s.tlsConf != nil), addr)
+		s.endpoint = surl.NewURL(surl.Scheme("grpc", s.config.tlsConf != nil), addr)
 	}
 	return nil
 }

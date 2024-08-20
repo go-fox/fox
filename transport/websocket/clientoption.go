@@ -40,16 +40,13 @@ type DecodeResponseFunc func(ctx context.Context, data []byte, out any) error
 
 // DefaultRequestEncoder default request encoder
 func DefaultRequestEncoder(ctx context.Context, args any) ([]byte, error) {
-	encoding, err := codec.GetCodec(proto.Name)
-	if err != nil {
-		return nil, err
-	}
+	encoding := codec.GetCodec(proto.Name)
 	tr, ok := transport.FromClientContext(ctx)
 	if ok {
 		contextType := tr.RequestHeader().Get("Content-Type")
 		if contextType != "" {
-			en, err := codec.GetCodec(contextType)
-			if err == nil {
+			en := codec.GetCodec(contextType)
+			if en != nil {
 				encoding = en
 			}
 		}
@@ -59,16 +56,13 @@ func DefaultRequestEncoder(ctx context.Context, args any) ([]byte, error) {
 
 // DefaultResponseDecoder default response decoder
 func DefaultResponseDecoder(ctx context.Context, data []byte, out any) error {
-	encoding, err := codec.GetCodec(proto.Name)
-	if err != nil {
-		return err
-	}
+	encoding := codec.GetCodec(proto.Name)
 	tr, ok := transport.FromClientContext(ctx)
 	if ok {
 		contextType := tr.RequestHeader().Get("Content-Type")
 		if contextType != "" {
-			en, err := codec.GetCodec(contextType)
-			if err == nil {
+			en := codec.GetCodec(contextType)
+			if en != nil {
 				encoding = en
 			}
 		}

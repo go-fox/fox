@@ -9,10 +9,13 @@ import (
 
 const (
 	_testJSON = `{
-	"username":"admin",
-	"password":"123456"
+	"redis":{
+		"username":"admin",
+		"password":"123456"
+	}
 }`
-	_testToml = `username="admin"
+	_testToml = `[mysql]
+username="admin"
 password="123456"`
 )
 
@@ -48,7 +51,7 @@ func (t *testEnToml) Watch() (Watcher, error) {
 func (t *testEnToml) Load() ([]*DataSet, error) {
 	return []*DataSet{
 		{
-			Key:    "mysql",
+			Key:    "mysql.toml",
 			Value:  []byte(_testToml),
 			Format: "toml",
 		},

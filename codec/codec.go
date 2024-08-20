@@ -24,13 +24,11 @@
 package codec
 
 import (
-	"fmt"
 	"strings"
-
-	"github.com/go-fox/sugar/container/smap"
+	"sync"
 )
 
-var registeredCodecs = smap.New[string, Codec](true)
+var registeredCodecs = sync.Map{}
 
 // Codec codec interface
 type Codec interface {
@@ -48,15 +46,15 @@ func RegisterCodec(codec Codec) {
 		panic("codec: Register codec name is empty")
 	}
 	name := strings.ToLower(codec.Name())
-	registeredCodecs.Set(name, codec)
+	registeredCodecs.Store(name, codec)
 }
 
 // GetCodec load codec
-func GetCodec(name string) (Codec, error) {
+func GetCodec(name string) Codec {
 	name = strings.ToLower(name)
-	codec, ok := registeredCodecs.Get(name)
-	if !ok {
-		return nil, fmt.Errorf("codec: codec `%s` not found", name)
+	value, ok := registeredCodecs.Load(name)
+	if ok {
+		return value.(Codec)
 	}
-	return codec, nil
+	return nil
 }

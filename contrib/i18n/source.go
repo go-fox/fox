@@ -23,7 +23,9 @@
 // SOFTWARE.
 package i18n
 
-import "time"
+import (
+	"time"
+)
 
 // DataSet translate dataset
 type DataSet struct {
