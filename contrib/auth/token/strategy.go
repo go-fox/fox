@@ -15,7 +15,7 @@ type CreateTokenFunction func(loginId any, loginType string, style Style) string
 type CheckTokenFunction func(tokenValue string) (bool, error)
 
 // CreateSessionFunction 创建session策略
-type CreateSessionFunction func(sessionId string, repository Repository) (Session, error)
+type CreateSessionFunction func(sessionId string, repository Repository) (*session, error)
 
 // GenerateUniqueTokenFunction 生成唯一token
 type GenerateUniqueTokenFunction func(element string, maxTryCount int, createTokenFunction func() string, checkTokenFunction func(value string) (bool, error)) (string, error)
@@ -37,10 +37,11 @@ func defaultCreateTokenFunction(loginId any, loginType string, style Style) stri
 }
 
 // defaultCreateSessionFunction 默认创建session的方法
-func defaultCreateSessionFunction(sessionId string, repository Repository) (Session, error) {
-	s := NewSession(repository)
-	s.SetSessionId(sessionId)
-	return s, nil
+func defaultCreateSessionFunction(sessionId string, repository Repository) (*session, error) {
+	ss := new(session)
+	ss.ID = sessionId
+	ss.repo = repository
+	return ss, nil
 }
 
 // defaultGenerateUniqueToken 默认生成唯一token的方法

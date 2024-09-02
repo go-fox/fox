@@ -1,6 +1,7 @@
 package token
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -15,93 +16,103 @@ var _ Token = (*token)(nil)
 type Token interface {
 	// Login 登录方法
 	//
-	//  @param loginId any 登录账号id，推荐使用int,int64,string
+	//  @param ctx context.Context
+	//  @param loginId any 登录账号id，推荐使用int, int64,string
 	//  @param config ...LoginOption 登录额外参数
 	//  @return string 登录后的token
 	//  @return error 是否有错
-	Login(loginId any, opts ...LoginOption) (string, error)
+	Login(ctx context.Context, loginId any, opts ...LoginOption) (string, error)
 	// Logout 退出方法
 	//
 	//  @param loginId any 登录账号id
 	//  @return error 是否有错
-	Logout(loginId any) error
+	//  @return error
+	Logout(ctx context.Context, loginId any) error
 	// LogoutByDevice 退出指定设备
 	//
+	//  @param ctx context.Context
 	//  @param loginId any 退出账号id
 	//  @param device string 退出的设备
 	//  @return error 是否有错
-	LogoutByDevice(loginId any, device string) error
+	LogoutByDevice(ctx context.Context, loginId any, device string) error
 	// LogoutByTokenValue 指定token值退出
 	//
+	//  @param ctx context.Context
 	//  @param tokenValue string 指定的token值
 	//  @return error
-	LogoutByTokenValue(tokenValue string) error
+	LogoutByTokenValue(ctx context.Context, tokenValue string) error
 	// Replaced 顶人下线，根据账号id 和 设备类型
 	//
+	//  @param ctx context.Context
 	//  @param loginId any 登录账号id
 	//  @param device string
 	//  @return error
-	Replaced(loginId any, device string) error
+	Replaced(ctx context.Context, loginId any, device string) error
 	// IsLogin 查询当前token是否登录
 	//
 	//  @param tokenValue string token值
 	//  @return bool 是否登录
 	//  @return error 查询过程中是否有错
-	IsLogin(tokenValue string) (bool, error)
+	IsLogin(ctx context.Context, tokenValue string) (bool, error)
 	// IsLoginByLoginId 查询指定账号是否登录
 	//
+	//  @param ctx context.Context
 	//  @param loginId any 登录账号id
 	//  @return bool 是否登录
 	//  @return error 查询过程中是否有错
-	IsLoginByLoginId(loginId any) (bool, error)
+	IsLoginByLoginId(ctx context.Context, loginId any) (bool, error)
 	// GetLoginIdAsInt 获取登录账号（数字类型）
 	//
 	//  @param tokenValue string
 	//  @return any
 	//  @return error
-	GetLoginIdAsInt(tokenValue string) (int64, error)
+	GetLoginIdAsInt(ctx context.Context, tokenValue string) (int64, error)
 	// GetLoginIdAsString 获取登录账号（字符串类型）
 	//
-	//  @param tokenValue string
-	//  @return string
-	//  @return error
-	GetLoginIdAsString(tokenValue string) (string, error)
+	//  @param ctx context.Context 携带上下文
+	//  @param tokenValue string token值
+	//  @return string 字符串账号
+	//  @return error 是否出错
+	GetLoginIdAsString(ctx context.Context, tokenValue string) (string, error)
 	// GetSessionByLoginId 获取指定用户id的 Account-Session
 	//
+	//  @param ctx context.Context
 	//  @param loginId any 登录id
 	//  @param isCreate bool 如果没有是否创建
 	//  @return Session session结构
 	//  @return error 是否有错
-	GetSessionByLoginId(loginId any, isCreate bool) (Session, error)
+	GetSessionByLoginId(ctx context.Context, loginId any, isCreate bool) (Session, error)
 	// GetSessionByLoginIdDefault 获取指定用户的 Account-session，如果没有则默认创建一个
 	//
+	//  @param ctx context.Context
 	//  @param LoginId any 登录账号
 	//  @return Session session结构
 	//  @return error 是否有错
-	GetSessionByLoginIdDefault(LoginId any) (Session, error)
+	GetSessionByLoginIdDefault(ctx context.Context, LoginId any) (Session, error)
 	// GetTokenSessionByTokenValue 获取指定 token 的 Token-Session，如果该 SaSession 尚未创建，isCreate代表是否新建并返回
 	//
+	//  @param ctx context.Context
 	//  @param tokenValue string 指定token值
 	//  @param isCreate bool 如果没有，是否新建
 	//  @return Session session结构
 	//  @return error 是否有错
-	GetTokenSessionByTokenValue(tokenValue string, isCreate bool) (Session, error)
+	GetTokenSessionByTokenValue(ctx context.Context, tokenValue string, isCreate bool) (Session, error)
 	// Disable 封禁账号
 	//
-	//	@receiver t
+	//  @param ctx context.Context
 	//	@param loginId any 指定账号id
 	//	@param timeout int64 封禁时间, 单位: 秒 （-1=永久封禁）
 	//	@return error
-	Disable(loginId any, service string, timeout int64) error
+	Disable(ctx context.Context, loginId any, service string, timeout int64) error
 	// DisableLevel 封禁：指定账号的指定服务，并指定封禁等级
 	//
-	//	@receiver t
+	//  @param ctx context.Context
 	//	@param loginId any 指定账号id
 	//	@param service string 指定封禁服务
 	//	@param level int 指定封禁等级
 	//	@param timeout int64 封禁时间, 单位: 秒 （-1=永久封禁）
 	//	@return error
-	DisableLevel(loginId any, service string, level int, timeout int64) error
+	DisableLevel(ctx context.Context, loginId any, service string, level int, timeout int64) error
 }
 
 // token 实例
@@ -133,11 +144,12 @@ func NewWithConfig(configs ...*Config) Token {
 // Login 登录方法
 //
 //	@receiver t
+//	@param ctx context.Context 上下文
 //	@param loginId any 推荐使用（int64，int，string）类型
 //	@param config ...LoginOption 登录参数
 //	@return string
 //	@return error
-func (t *token) Login(loginId any, opts ...LoginOption) (string, error) {
+func (t *token) Login(ctx context.Context, loginId any, opts ...LoginOption) (string, error) {
 	// 1.额外参数拼装
 	o := LoginOptions{}
 	for _, opt := range opts {
@@ -151,32 +163,32 @@ func (t *token) Login(loginId any, opts ...LoginOption) (string, error) {
 	// 3.补充参数
 	o.Apply(t.config)
 	// 4.分配一个可用的token
-	tokenValue, err := t.distUsableToken(loginId, o)
+	tokenValue, err := t.distUsableToken(ctx, loginId, o)
 	if err != nil {
 		return "", err
 	}
 	// 5、获取此账号的 Account-Session , 续期
-	se, err := t.getSessionByLoginId(loginId, true)
+	se, err := t.getSessionByLoginId(ctx, loginId, true)
 	if err != nil {
 		return "", err
 	}
-	err = se.UpdateMinTimeout(o.GetTimeout())
+	err = se.updateMinTimeout(ctx, o.GetTimeout())
 	if err != nil {
 		return "", err
 	}
 	// 6、在 Account-Session 上记录本次登录的 token 签名
-	err = se.AddTokenSign(NewSign(tokenValue, o.GetDevice(), o.GetExtraData()))
+	err = se.addTokenSign(ctx, NewSign(tokenValue, o.GetDevice(), o.GetExtraData()))
 	if err != nil {
 		return "", err
 	}
 	// 7、保存 token -> id 的映射关系，方便日后根据 token 找账号 id
-	err = t.saveTokenToIdMapping(tokenValue, loginId, o.GetTimeout())
+	err = t.saveTokenToIdMapping(ctx, tokenValue, loginId, o.GetTimeout())
 	if err != nil {
 		return "", err
 	}
 	// 8、如果开启了活跃度校验，写入这个 token 的最后活跃时间 token-last-active
 	if t.isOpenCheckActiveTimeout() {
-		err = t.setLastActiveToNow(tokenValue, o.GetTimeout(), o.GetActiveTimeout())
+		err = t.setLastActiveToNow(ctx, tokenValue, o.GetTimeout(), o.GetActiveTimeout())
 		if err != nil {
 			return "", err
 		}
@@ -186,7 +198,7 @@ func (t *token) Login(loginId any, opts ...LoginOption) (string, error) {
 
 	// 10、检查此账号会话数量是否超出最大值，如果超过，则按照登录时间顺序，把最开始登录的给注销掉
 	if t.config.MaxLoginCount != -1 {
-		err = t.logoutByMaxLoginCount(loginId, se, "", t.config.MaxLoginCount)
+		err = t.logoutByMaxLoginCount(ctx, loginId, se, "", t.config.MaxLoginCount)
 		if err != nil {
 			return "", err
 		}
@@ -199,8 +211,8 @@ func (t *token) Login(loginId any, opts ...LoginOption) (string, error) {
 //	@receiver t
 //	@param loginId any 登录id
 //	@return error 错误信息
-func (t *token) Logout(loginId any) error {
-	return t.LogoutByDevice(loginId, "")
+func (t *token) Logout(ctx context.Context, loginId any) error {
+	return t.LogoutByDevice(ctx, loginId, "")
 }
 
 // LogoutByDevice 退出登录根据登录设备
@@ -209,17 +221,17 @@ func (t *token) Logout(loginId any) error {
 //	@param loginId any 登陆账号
 //	@param device string 登陆设备
 //	@return error
-func (t *token) LogoutByDevice(loginId any, device string) error {
-	ss, err := t.getSessionByLoginId(loginId, false)
+func (t *token) LogoutByDevice(ctx context.Context, loginId any, device string) error {
+	ss, err := t.getSessionByLoginId(ctx, loginId, false)
 	if err != nil {
 		return err
 	}
 	if ss != nil {
 		// 2、遍历此账号所有从这个 device 设备上登录的客户端，清除相关数据
-		for _, sign := range ss.GetTokenSignListByDevice(device) {
+		for _, sign := range ss.getTokenSignListByDevice(device) {
 			tokenValue := sign.Value
 			// 2.1、从 Account-Session 上清除 token 签名
-			if err := ss.RemoveTokenSign(tokenValue); err != nil {
+			if err := ss.removeTokenSign(ctx, tokenValue); err != nil {
 				return err
 			}
 
@@ -236,7 +248,7 @@ func (t *token) LogoutByDevice(loginId any, device string) error {
 			}
 
 			// 2.4、清除这个 token 的 Token-Session 对象
-			if err := t.deleteTokenSession(tokenValue); err != nil {
+			if err := t.deleteTokenSession(ctx, tokenValue); err != nil {
 				return err
 			}
 
@@ -244,7 +256,7 @@ func (t *token) LogoutByDevice(loginId any, device string) error {
 			t.config.listener.DoLogout(t.config.LoginType, loginId, tokenValue)
 		}
 		// 3、如果代码走到这里的时候，此账号已经没有客户端在登录了，则直接注销掉这个 Account-Session
-		err = ss.LogoutByTokenSignCountIsZero()
+		err = ss.logoutByTokenSignCountIsZero(ctx)
 		if err != nil {
 			return err
 		}
@@ -257,7 +269,7 @@ func (t *token) LogoutByDevice(loginId any, device string) error {
 //	@receiver t
 //	@param tokenValue string
 //	@return error
-func (t *token) LogoutByTokenValue(tokenValue string) error {
+func (t *token) LogoutByTokenValue(ctx context.Context, tokenValue string) error {
 	// 如果没有token值则直接跳过
 	if len(tokenValue) == 0 {
 		return nil
@@ -270,13 +282,13 @@ func (t *token) LogoutByTokenValue(tokenValue string) error {
 		}
 	}
 	// 2、清除这个 token 的 Token-Session 对象
-	err := t.deleteTokenSession(tokenValue)
+	err := t.deleteTokenSession(ctx, tokenValue)
 	if err != nil {
 		return err
 	}
 
 	// 3、清除 token -> id 的映射关系
-	loginId, err := t.getLoginIdNotHandle(tokenValue)
+	loginId, err := t.getLoginIdNotHandle(ctx, tokenValue)
 	if err != nil {
 		return err
 	}
@@ -296,16 +308,16 @@ func (t *token) LogoutByTokenValue(tokenValue string) error {
 	t.config.listener.DoLogout(t.config.LoginType, loginId, tokenValue)
 
 	// 6、清理这个账号的 Account-Session 上的 token 签名，并且尝试注销掉 Account-Session
-	ss, err := t.getSessionByLoginId(loginId, false)
+	ss, err := t.getSessionByLoginId(ctx, loginId, false)
 	if err != nil {
 		return err
 	}
 	if ss != nil {
-		err = ss.RemoveTokenSign(tokenValue)
+		err = ss.removeTokenSign(ctx, tokenValue)
 		if err != nil {
 			return err
 		}
-		err = ss.LogoutByTokenSignCountIsZero()
+		err = ss.logoutByTokenSignCountIsZero(ctx)
 		if err != nil {
 			return err
 		}
@@ -314,21 +326,16 @@ func (t *token) LogoutByTokenValue(tokenValue string) error {
 }
 
 // Replaced 顶人下线，根据账号id 和 设备类型 ，当用户顶下线后，再次访问则会返回
-//
-//	@receiver t
-//	@param loginId any 登录账号
-//	@param device string 登录设备,如果为空字符串，则代表顶替该账号的所有设备类型
-//	@return error
-func (t *token) Replaced(loginId any, device string) error {
-	ss, err := t.getSessionByLoginId(loginId, false)
+func (t *token) Replaced(ctx context.Context, loginId any, device string) error {
+	ss, err := t.getSessionByLoginId(ctx, loginId, false)
 	if err != nil {
 		return err
 	}
 	if ss != nil {
-		for _, sign := range ss.GetTokenSignListByDevice(device) {
+		for _, sign := range ss.getTokenSignListByDevice(device) {
 			tokenValue := sign.Value
 			// 2.1、从 Account-Session 上清除 token 签名
-			if err := ss.RemoveTokenSign(tokenValue); err != nil {
+			if err := ss.removeTokenSign(ctx, tokenValue); err != nil {
 				return err
 			}
 
@@ -340,7 +347,7 @@ func (t *token) Replaced(loginId any, device string) error {
 			}
 
 			// 2.3 将此 token 标记为：已被顶下线
-			if err := t.updateTokenToIdMapping(tokenValue, BeReplaced); err != nil {
+			if err := t.updateTokenToIdMapping(ctx, tokenValue, BeReplaced); err != nil {
 				return err
 			}
 
@@ -354,10 +361,11 @@ func (t *token) Replaced(loginId any, device string) error {
 // IsLogin 判断给定token是否登录
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param tokenValue string token值
 //	@return bool 是否登录
-func (t *token) IsLogin(tokenValue string) (bool, error) {
-	defaultNil, err := t.getLoginIdDefaultNil(tokenValue)
+func (t *token) IsLogin(ctx context.Context, tokenValue string) (bool, error) {
+	defaultNil, err := t.getLoginIdDefaultNil(ctx, tokenValue)
 	if err != nil {
 		return false, err
 	}
@@ -370,11 +378,12 @@ func (t *token) IsLogin(tokenValue string) (bool, error) {
 // IsLoginByLoginId 根据登录id判断该用户是否已经登录
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param loginId any 登录id，推荐使用int,int64,string
 //	@return bool 是否登录
 //	@return error 是否有错
-func (t *token) IsLoginByLoginId(loginId any) (bool, error) {
-	tokenValues, err := t.getTokenValueByLoginId(loginId, "")
+func (t *token) IsLoginByLoginId(ctx context.Context, loginId any) (bool, error) {
+	tokenValues, err := t.getTokenValueByLoginId(ctx, loginId, "")
 	if err != nil {
 		return false, err
 	}
@@ -384,22 +393,25 @@ func (t *token) IsLoginByLoginId(loginId any) (bool, error) {
 // GetLoginIdAsString 获取登录账号字符串
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param tokenValue string
 //	@return string
 //	@return error
-func (t *token) GetLoginIdAsString(tokenValue string) (string, error) {
-	return t.getLoginIdNotHandle(tokenValue)
+//	@player
+func (t *token) GetLoginIdAsString(ctx context.Context, tokenValue string) (string, error) {
+	return t.getLoginIdNotHandle(ctx, tokenValue)
 }
 
 // GetLoginId 获取登录账号
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param tokenValue string 登录的token值
 //	@return any 登录id
 //	@return error 是否有错
-func (t *token) GetLoginId(tokenValue string) (any, error) {
+func (t *token) GetLoginId(ctx context.Context, tokenValue string) (any, error) {
 	// 1、查询登录id
-	loginId, err := t.getLoginIdDefaultNil(tokenValue)
+	loginId, err := t.getLoginIdDefaultNil(ctx, tokenValue)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +438,7 @@ func (t *token) GetLoginId(tokenValue string) (any, error) {
 		}
 		// 如果配置了续签
 		if t.config.AutoRenew {
-			if err := t.updateLastActiveToNow(tokenValue); err != nil {
+			if err := t.updateLastActiveToNow(ctx, tokenValue); err != nil {
 				return nil, err
 			}
 		}
@@ -437,11 +449,12 @@ func (t *token) GetLoginId(tokenValue string) (any, error) {
 // GetLoginIdAsInt 获取登录账号数字
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param tokenValue string 登录token值
 //	@return int64 转换后的数字id，如果没有则为0
 //	@return error 是否有错
-func (t *token) GetLoginIdAsInt(tokenValue string) (int64, error) {
-	loginId, err := t.getLoginIdDefaultNil(tokenValue)
+func (t *token) GetLoginIdAsInt(ctx context.Context, tokenValue string) (int64, error) {
+	loginId, err := t.getLoginIdDefaultNil(ctx, tokenValue)
 	if err != nil {
 		return 0, err
 	}
@@ -454,22 +467,26 @@ func (t *token) GetLoginIdAsInt(tokenValue string) (int64, error) {
 // Disable 封禁账号
 //
 //	@receiver t
-//	@param loginId any 指定账号id
-//	@param timeout int64 封禁时间, 单位: 秒 （-1=永久封禁）
+//	@param ctx context.Context
+//	@param loginId any
+//	@param service string
+//	@param timeout int64
 //	@return error
-func (t *token) Disable(loginId any, service string, timeout int64) error {
-	return t.DisableLevel(loginId, service, DefaultDisableLevel, timeout)
+//	@player
+func (t *token) Disable(ctx context.Context, loginId any, service string, timeout int64) error {
+	return t.DisableLevel(ctx, loginId, service, DefaultDisableLevel, timeout)
 }
 
 // DisableLevel 封禁：指定账号的指定服务，并指定封禁等级
 //
-//	@receiver t
-//	@param loginId any 指定账号id
-//	@param service string 指定封禁服务
-//	@param level int 指定封禁等级
-//	@param timeout int64 封禁时间, 单位: 秒 （-1=永久封禁）
-//	@return error
-func (t *token) DisableLevel(loginId any, service string, level int, timeout int64) error {
+//	 @receiver t
+//	 @param ctx context.Context
+//		@param loginId any 指定账号id
+//		@param service string 指定封禁服务
+//		@param level int 指定封禁等级
+//		@param timeout int64 封禁时间, 单位: 秒 （-1=永久封禁）
+//		@return error
+func (t *token) DisableLevel(ctx context.Context, loginId any, service string, level int, timeout int64) error {
 	if len(convertor.ToString(loginId)) == 0 {
 		return errors.New("loginId is empty")
 	}
@@ -480,7 +497,7 @@ func (t *token) DisableLevel(loginId any, service string, level int, timeout int
 		return errors.New("level is less than MinDisableLevel")
 	}
 	// 打上封印标记
-	if err := t.config.repository.Set(t.splicingKeyDisable(loginId, service), convertor.ToString(level), timeout); err != nil {
+	if err := t.config.repository.Set(ctx, t.splicingKeyDisable(loginId, service), convertor.ToString(level), time.Duration(timeout)*time.Second); err != nil {
 		return err
 	}
 	// 发布事件
@@ -518,14 +535,17 @@ func (t *token) checkLoginArgs(loginId any, opts LoginOptions) error {
 // distUsableToken 分配token
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param loginId any
-//	@param config LoginOptions
-//	@return bool
-func (t *token) distUsableToken(loginId any, opts LoginOptions) (string, error) {
+//	@param opts LoginOptions
+//	@return string
+//	@return error
+//	@player
+func (t *token) distUsableToken(ctx context.Context, loginId any, opts LoginOptions) (string, error) {
 	// 1、获取全局配置的 isConcurrent 参数
 	//    如果配置为：不允许一个账号多地同时登录，则需要先将这个账号的历史登录会话标记为：被顶下线
 	if t.config.IsConcurrent {
-		err := t.Replaced(loginId, opts.GetDevice())
+		err := t.Replaced(ctx, loginId, opts.GetDevice())
 		if err != nil {
 			return "", err
 		}
@@ -537,7 +557,7 @@ func (t *token) distUsableToken(loginId any, opts LoginOptions) (string, error) 
 	// 3、只有在配置了 [ 允许一个账号多地同时登录 ] 时，才尝试复用旧 token，这样可以避免不必要的查询，节省开销
 	if t.config.IsConcurrent {
 		if t.config.IsShare {
-			tokenValue, err := t.getTokenValueByLoginId(loginId, opts.GetDevice())
+			tokenValue, err := t.getTokenValueByLoginId(ctx, loginId, opts.GetDevice())
 			if err != nil {
 				return "", err
 			}
@@ -554,7 +574,7 @@ func (t *token) distUsableToken(loginId any, opts LoginOptions) (string, error) 
 			return t.createTokenValue(loginId, opts.GetDevice(), opts.GetTimeout(), opts.GetExtraData())
 		},
 		func(value string) (bool, error) {
-			id, err := t.getLoginIdNotHandle(value)
+			id, err := t.getLoginIdNotHandle(ctx, value)
 			if err != nil {
 				return false, err
 			}
@@ -565,17 +585,18 @@ func (t *token) distUsableToken(loginId any, opts LoginOptions) (string, error) 
 
 // getLoginIdDefaultNil 获取登录账号
 //
-//	@receiver t
-//	@param tokenValue string toke值
-//	@return any 登录账号，如果没有，返回nil
-//	@return error 错误信息
-func (t *token) getLoginIdDefaultNil(tokenValue string) (any, error) {
+//	 @receiver t
+//	 @param ctx context.Context
+//		@param tokenValue string toke值
+//		@return any 登录账号，如果没有，返回nil
+//		@return error 错误信息
+func (t *token) getLoginIdDefaultNil(ctx context.Context, tokenValue string) (any, error) {
 	// 1、如果token为空则直接返回false
 	if len(tokenValue) == 0 {
 		return nil, nil
 	}
 	// 2、根据 token 找到对应的 loginId，如果 loginId 为 null 或者属于异常标记里面，均视为未登录, 统一返回 null
-	loginId, err := t.getLoginIdNotHandle(tokenValue)
+	loginId, err := t.getLoginIdNotHandle(ctx, tokenValue)
 	if err != nil {
 		return nil, err
 	}
@@ -597,15 +618,16 @@ func (t *token) getLoginIdDefaultNil(tokenValue string) (any, error) {
 // logoutByMaxLoginCount 如果指定账号 id、设备类型的登录客户端已经超过了指定数量，则按照登录时间顺序，把最开始登录的给注销掉
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param id any 账号id
 //	@param s Session 此账号的 Account-Session 对象，可填写 null，框架将自动获取
 //	@param null any 设备类型（填 null 代表注销此账号所有设备类型的登录）
 //	@param count int 最大登录数量，超过此数量的将被注销
 //	@return error
-func (t *token) logoutByMaxLoginCount(loginId any, ss Session, device string, count int) (err error) {
+func (t *token) logoutByMaxLoginCount(ctx context.Context, loginId any, ss *session, device string, count int) (err error) {
 	// 1、如果调用者提供的  Account-Session 对象为空，则我们先手动获取一下
 	if ss == nil {
-		ss, err = t.getSessionByLoginId(loginId, false)
+		ss, err = t.getSessionByLoginId(ctx, loginId, false)
 		if err != nil {
 			return
 		}
@@ -614,13 +636,13 @@ func (t *token) logoutByMaxLoginCount(loginId any, ss Session, device string, co
 		}
 	}
 	// 2、获取指定账号指定设备类型下的所有登录客户端
-	signList := ss.GetTokenSignListByDevice(device)
+	signList := ss.getTokenSignListByDevice(device)
 
 	// 3、按照登录时间倒叙，超过 maxLoginCount 数量的，全部注销掉
 	for i := 0; i < len(signList)-count; i++ {
 		tokenValue := signList[i].Value
 		// 3.1 从account-session上移除token签名
-		err = ss.RemoveTokenSign(tokenValue)
+		err = ss.removeTokenSign(ctx, tokenValue)
 		if err != nil {
 			return err
 		}
@@ -637,7 +659,7 @@ func (t *token) logoutByMaxLoginCount(loginId any, ss Session, device string, co
 			return err
 		}
 		// 3.4、清除这个 token 的 Token-Session 对象
-		err = t.deleteTokenSession(tokenValue)
+		err = t.deleteTokenSession(ctx, tokenValue)
 		if err != nil {
 			return err
 		}
@@ -646,7 +668,7 @@ func (t *token) logoutByMaxLoginCount(loginId any, ss Session, device string, co
 	}
 
 	// 4、如果客户端的登录账号数量为0，则直接清除account-session
-	return ss.LogoutByTokenSignCountIsZero()
+	return ss.logoutByTokenSignCountIsZero(ctx)
 }
 
 // isBasicType 判断是否是string,int...
@@ -688,7 +710,7 @@ func (t *token) isOpenCheckActiveTimeout() bool {
 //	@param tokenValue string token值
 //	@return error
 func (t *token) clearLastActive(tokenValue string) error {
-	return t.config.repository.Delete(t.splicingKeyLastActiveTime(tokenValue))
+	return t.config.repository.Delete(context.Background(), t.splicingKeyLastActiveTime(tokenValue))
 }
 
 // deleteTokenToIdMapping 删除 token - id 的映射
@@ -697,7 +719,7 @@ func (t *token) clearLastActive(tokenValue string) error {
 //	@param tokenValue string token值
 //	@return error 错误信息
 func (t *token) deleteTokenToIdMapping(tokenValue string) error {
-	return t.config.repository.Delete(t.splicingKeyTokenValue(tokenValue))
+	return t.config.repository.Delete(context.Background(), t.splicingKeyTokenValue(tokenValue))
 }
 
 // getTokenActiveTimeoutByToken 获取指定 token 剩余活跃有效期：这个 token 距离被冻结还剩多少时间（单位: 秒，返回 -1 代表永不冻结，-2 代表没有这个值或 token 已被冻结了）
@@ -718,7 +740,8 @@ func (t *token) getTokenActiveTimeoutByToken(tokenValue string) (int64, error) {
 
 	// 1、先获取这个 token 的最后活跃时间，13位时间戳
 	key := t.splicingKeyLastActiveTime(tokenValue)
-	lastActiveTimeStr, err := t.config.repository.Get(key)
+	var lastActiveTimeStr = ""
+	err := t.config.repository.Get(context.Background(), key, &lastActiveTimeStr)
 	if err != nil || len(lastActiveTimeStr) == 0 {
 		return NotValueExpire, err
 	}
@@ -794,21 +817,23 @@ func (t *token) getActiveTimeAllowTimeDiff(value *activeTimeValue) *int64 {
 // deleteTokenSession 删除指定token的token-session
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param value string token值
 //	@return error 错误信息
-func (t *token) deleteTokenSession(value string) error {
-	return t.config.repository.Delete(t.splicingKeyTokenSession(value))
+func (t *token) deleteTokenSession(ctx context.Context, value string) error {
+	return t.config.repository.Delete(ctx, t.splicingKeyTokenSession(value))
 }
 
 // getTokenValueByLoginId 获取token值根据登录编号和设备
 //
-//	@receiver t
-//	@param loginId any 登录编号
-//	@param device string 设备信息
-//	@return string token值
-//	@return error 是否有错
-func (t *token) getTokenValueByLoginId(loginId any, device string) (string, error) {
-	list, err := t.getTokenSignListByLoginId(loginId, device)
+//	 @receiver t
+//	 @param ctx context.Context
+//		@param loginId any 登录编号
+//		@param device string 设备信息
+//		@return string token值
+//		@return error 是否有错
+func (t *token) getTokenValueByLoginId(ctx context.Context, loginId any, device string) (string, error) {
+	list, err := t.getTokenSignListByLoginId(ctx, loginId, device)
 	if err != nil {
 		return "", err
 	}
@@ -825,12 +850,12 @@ func (t *token) getTokenValueByLoginId(loginId any, device string) (string, erro
 //	@param device string 设备信息，为空时查询全部
 //	@return signList 所有的签名列表
 //	@return err 是否有错
-func (t *token) getTokenSignListByLoginId(loginId any, device string) (signList []string, err error) {
-	ss, err := t.getSessionByLoginId(loginId, false)
+func (t *token) getTokenSignListByLoginId(ctx context.Context, loginId any, device string) (signList []string, err error) {
+	ss, err := t.getSessionByLoginId(ctx, loginId, false)
 	if err != nil {
 		return []string{}, err
 	}
-	return ss.GetTokenValueListByDevice(device), nil
+	return ss.getTokenValueListByDevice(device), nil
 }
 
 // GetSessionByLoginId  获取指定账号 id 的 Account-Session
@@ -840,38 +865,41 @@ func (t *token) getTokenSignListByLoginId(loginId any, device string) (signList 
 //	@param isCrete bool 如果不存在是否创建一个
 //	@return Session session结构体
 //	@return error 是否有错
-func (t *token) GetSessionByLoginId(loginId any, isCrete bool) (Session, error) {
-	return t.getSessionByLoginId(loginId, isCrete)
+func (t *token) GetSessionByLoginId(ctx context.Context, loginId any, isCrete bool) (Session, error) {
+	return t.getSessionByLoginId(ctx, loginId, isCrete)
 }
 
 // GetSessionByLoginIdDefault 获取指定用户id的 Account-session，如果没有则创建一个
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param loginId any 登录id
 //	@return Session session结构
 //	@return error 是否有错
-func (t *token) GetSessionByLoginIdDefault(loginId any) (Session, error) {
-	return t.getSessionByLoginId(loginId, true)
+func (t *token) GetSessionByLoginIdDefault(ctx context.Context, loginId any) (Session, error) {
+	return t.getSessionByLoginId(ctx, loginId, true)
 }
 
 // getSessionByLoginId 获取指定账号 id 的 Account-Session
 //
 //	@receiver t
+//	@param ctx context.Context 上下文
 //	@param loginId any 账号id
 //	@param isCreate bool 如果不存在是否创建一个
 //	@return Session
 //	@return error
-func (t *token) getSessionByLoginId(loginId any, isCreate bool) (Session, error) {
+func (t *token) getSessionByLoginId(ctx context.Context, loginId any, isCreate bool) (*session, error) {
 	if len(convertor.ToString(loginId)) == 0 {
 		return nil, errors.New("Account-Session 获取失败：loginId 不能为空")
 	}
 	return t.getSessionBySessionId(
+		ctx,
 		t.splicingKeySession(loginId),
 		isCreate,
-		func(s Session) error {
-			s.SetSessionType(AccountSessionType)
-			s.SetLoginType(t.config.LoginType)
-			s.SetLoginId(loginId)
+		func(s *session) error {
+			s.SessionType = AccountSessionType
+			s.LoginType = t.config.LoginType
+			s.LoginId = loginId
 			return nil
 		},
 	)
@@ -885,41 +913,40 @@ func (t *token) getSessionByLoginId(loginId any, isCreate bool) (Session, error)
 //	@param appendOperation ...func(s session) error
 //	@return Session session实例
 //	@return error 是否有错
-func (t *token) getSessionBySessionId(sessionId string, isCreate bool, appendOperation ...func(s Session) error) (Session, error) {
+func (t *token) getSessionBySessionId(ctx context.Context, sessionId string, isCreate bool, appendOperation ...func(s *session) error) (*session, error) {
 	// 如果提供的 sessionId 为 null，则直接返回 null
 	if len(sessionId) == 0 {
 		return nil, errors.New("sessionId 不能为空")
 	}
-	var operation func(s Session) error
+	var operation func(s *session) error
 	if len(appendOperation) > 0 {
 		operation = appendOperation[0]
 	}
-	var session Session
+	var ss = &session{}
 	var err error
-	session, err = t.config.repository.GetSession(sessionId)
-	if err != nil {
+	if err := t.config.repository.Get(ctx, t.splicingKeySession(sessionId), ss); err != nil {
 		return nil, err
 	}
-	if session == nil && isCreate {
-		// 创建session
-		session, err = t.config.createSessionFunction(sessionId, t.config.repository)
+	// 如果没有
+	if ss.ID == "" && isCreate {
+		ss, err = t.config.createSessionFunction(sessionId, t.config.repository)
 		if err != nil {
 			return nil, err
 		}
-		// 追加操作
 		if operation != nil {
-			err := operation(session)
-			if err != nil {
+			if err := operation(ss); err != nil {
 				return nil, err
 			}
 		}
-		// 持久化数据
-		err = t.config.repository.setSession(session, t.config.Timeout)
-		if err != nil {
+		if err := t.config.repository.Set(ctx, sessionId, ss, time.Duration(t.config.Timeout)*time.Second); err != nil {
 			return nil, err
 		}
 	}
-	return session, nil
+	// 如果还是没有则返回nil
+	if ss.ID == "" {
+		return nil, nil
+	}
+	return ss, nil
 }
 
 // GetTokenSessionByTokenValue 获取指定 token 的 Token-Session，如果该 SaSession 尚未创建，isCreate代表是否新建并返回
@@ -929,14 +956,14 @@ func (t *token) getSessionBySessionId(sessionId string, isCreate bool, appendOpe
 //	@param isCreate bool 如果没有，是否创建
 //	@return Session session结构
 //	@return error 是否有错
-func (t *token) GetTokenSessionByTokenValue(tokenValue string, isCreate bool) (Session, error) {
+func (t *token) GetTokenSessionByTokenValue(ctx context.Context, tokenValue string, isCreate bool) (Session, error) {
 	if len(tokenValue) == 0 {
 		return nil, errors.New("Token-Session 获取失败：token 不能为空")
 	}
-	return t.getSessionBySessionId(t.splicingKeyTokenSession(tokenValue), isCreate, func(s Session) error {
-		s.SetSessionType(TokenSessionType)
-		s.SetLoginType(t.config.LoginType)
-		s.SetToken(tokenValue)
+	return t.getSessionBySessionId(ctx, t.splicingKeyTokenSession(tokenValue), isCreate, func(s *session) error {
+		s.SessionType = TokenSessionType
+		s.LoginType = t.config.LoginType
+		s.Token = tokenValue
 		return nil
 	})
 }
@@ -956,12 +983,14 @@ func (t *token) createTokenValue(loginId any, device string, timeout int64, extr
 // getLoginIdNotHandle 获取指定token对应的id
 //
 //	@receiver t
-//	@param tokenValue string token值
-//	@return string 账号id
-//	@return error 是否有错
-func (t *token) getLoginIdNotHandle(tokenValue string) (string, error) {
-	loginId, err := t.config.repository.Get(t.splicingKeyTokenValue(tokenValue))
-	if err != nil {
+//	@param ct context.Context
+//	@param tokenValue string
+//	@return string
+//	@return error
+//	@player
+func (t *token) getLoginIdNotHandle(ctx context.Context, tokenValue string) (string, error) {
+	var loginId string
+	if err := t.config.repository.Get(ctx, t.splicingKeyTokenValue(tokenValue), &loginId); err != nil {
 		return "", err
 	}
 	return loginId, nil
@@ -970,35 +999,38 @@ func (t *token) getLoginIdNotHandle(tokenValue string) (string, error) {
 // saveTokenToIdMapping 保存token与id映射关系
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param tokenValue string token值
 //	@param loginId any 登录Id
 //	@param timeout int64 过期时间
 //	@return string
-func (t *token) saveTokenToIdMapping(tokenValue string, loginId any, timeout int64) error {
-	return t.config.repository.Set(t.splicingKeyTokenValue(tokenValue), convertor.ToString(loginId), timeout)
+func (t *token) saveTokenToIdMapping(ctx context.Context, tokenValue string, loginId any, timeout int64) error {
+	return t.config.repository.Set(ctx, t.splicingKeyTokenValue(tokenValue), convertor.ToString(loginId), time.Duration(timeout)*time.Second)
 }
 
 // updateTokenToIdMapping 更改 token - id 映射关系
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param value string token值
 //	@param loginId any 登陆账号
 //	@return error
-func (t *token) updateTokenToIdMapping(tokenValue string, loginId any) error {
+func (t *token) updateTokenToIdMapping(ctx context.Context, tokenValue string, loginId any) error {
 	if len(convertor.ToString(loginId)) == 0 {
 		return errors.New("loginId 不能为空")
 	}
-	return t.config.repository.Update(tokenValue, convertor.ToString(loginId))
+	return t.config.repository.Update(ctx, tokenValue, convertor.ToString(loginId))
 }
 
 // setLastActiveToNow 设置token的最后活跃时间为当前时间
 //
 //	@receiver t
+//	@param ctx context.Context
 //	@param tokenValue string token值
 //	@param activeTimeout int64 token的最低活跃频率，如果为0，则使用全局配置的 activeTimeout 值
 //	@param timeout int64 保存数据时使用的ttl数值，如果为0，则使用全局配置的 timeout 值
 //	@return error 是否有错
-func (t *token) setLastActiveToNow(tokenValue string, activeTimeout int64, timeout int64) error {
+func (t *token) setLastActiveToNow(ctx context.Context, tokenValue string, activeTimeout int64, timeout int64) error {
 	if timeout == 0 {
 		timeout = t.config.Timeout
 	}
@@ -1008,7 +1040,7 @@ func (t *token) setLastActiveToNow(tokenValue string, activeTimeout int64, timeo
 	if t.config.DynamicActiveTimeout && activeTimeout != 0 {
 		val += "," + convertor.ToString(activeTimeout)
 	}
-	return t.config.repository.Set(key, val, timeout)
+	return t.config.repository.Set(ctx, key, val, time.Duration(timeout)*time.Second)
 }
 
 // getTokenUseActiveTimeout 获取指定 token 在缓存中的 activeTimeout 值，如果不存在则返回 nil
@@ -1016,13 +1048,13 @@ func (t *token) setLastActiveToNow(tokenValue string, activeTimeout int64, timeo
 //	@receiver t
 //	@param tokenValue string 指定 token
 //	@return int64
-func (t *token) getTokenUseActiveTimeout(tokenValue string) (*int64, error) {
+func (t *token) getTokenUseActiveTimeout(ctx context.Context, tokenValue string) (*int64, error) {
 	if !t.config.DynamicActiveTimeout {
 		return nil, nil
 	}
 	key := t.splicingKeyLastActiveTime(tokenValue)
-	value, err := t.config.repository.Get(key)
-	if err != nil {
+	var value string
+	if err := t.config.repository.Get(ctx, key, &value); err != nil {
 		return nil, err
 	}
 	storeValue := newActiveTimeValue(value)
@@ -1034,15 +1066,15 @@ func (t *token) getTokenUseActiveTimeout(tokenValue string) (*int64, error) {
 //	@receiver t
 //	@param tokenValue string 指定token值
 //	@return error 是否有错
-func (t *token) updateLastActiveToNow(tokenValue string) error {
+func (t *token) updateLastActiveToNow(ctx context.Context, tokenValue string) error {
 	key := t.splicingKeyLastActiveTime(tokenValue)
-	timeout, err := t.getTokenUseActiveTimeout(tokenValue)
+	timeout, err := t.getTokenUseActiveTimeout(ctx, tokenValue)
 	if err != nil {
 		return err
 	}
 	now := time.Now()
 	value := newActiveTimeValueWithValue(&now, timeout).Fmt()
-	return t.config.repository.Update(key, value)
+	return t.config.repository.Update(ctx, key, value)
 }
 
 // splicingKeyTokenValue  拼接： 在保存 token - id 映射关系时，使用的key

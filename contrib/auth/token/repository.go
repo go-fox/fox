@@ -23,59 +23,17 @@
 // SOFTWARE.
 package token
 
+import (
+	"context"
+	"time"
+)
+
 // Repository 存储接口
 type Repository interface {
-	// Set 设置数据
-	//
-	//  @param key string 存储key
-	//  @param value string 存储值
-	//  @param timeout int64 过期时间
-	//  @return error
-	Set(key string, value string, timeout int64) error
-	// Get 获取字符串值
-	//
-	//  @param key string 存储键
-	//  @return string 返回值
-	//  @return error 是否有错
-	Get(key string) (string, error)
-	// Delete
-	//
-	//  @param key string 存储键
-	//  @return error 错误信息
-	Delete(key string) error
-	// Update 修改字符串值
-	//
-	//  @param key string 存储key
-	//  @param val string 存储值
-	//  @return error
-	Update(key string, val string) error
-	// setSession
-	//
-	//  @param s Session 要保存的 SaSession 对象
-	//  @param timeout int64 过期时间，单位：秒
-	//  @return error
-	setSession(s Session, timeout int64) error
-	// GetSession 获取session
-	//
-	//  @param sessionId string
-	//  @return Session
-	GetSession(sessionId string) (Session, error)
-	// UpdateObject 修改值
-	//
-	//  @param sessionId string
-	//  @param obj any
-	//  @return error
-	UpdateObject(sessionId string, obj any) error
-	// UpdateObjectTimeout 修改 Object 的剩余存活时间（单位: 秒）
-	//
-	//  @param key string 指定 key
-	//  @param timeout int64 剩余活跃时间
-	//  @return error
-	UpdateObjectTimeout(key string, timeout int64) error
-	// GetObjectTimeout 获取指定对象的剩余活跃时间（单位：秒）
-	//
-	//  @param key string 指定key
-	//  @return int64 剩余存活时间
-	//  @return error
-	GetObjectTimeout(key string) (int64, error)
+	Get(ctx context.Context, key string, value any) error
+	Set(ctx context.Context, key string, value any, timeout time.Duration) error
+	Update(ctx context.Context, key string, value any) error
+	TTL(ctx context.Context, key string) (time.Duration, error)
+	UpdateTTL(ctx context.Context, key string, ttl time.Duration) error
+	Delete(ctx context.Context, key string) error
 }
