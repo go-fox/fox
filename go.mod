@@ -13,6 +13,7 @@ require (
 	github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e
 	github.com/google/uuid v1.6.0
 	github.com/panjf2000/ants/v2 v2.10.0
+	github.com/urfave/cli/v2 v2.27.4
 	github.com/valyala/fasthttp v1.55.0
 	go.uber.org/automaxprocs v1.5.3
 	google.golang.org/genproto/googleapis/api v0.0.0-20240709173604-40e1e62336c5
@@ -25,16 +26,19 @@ require (
 require (
 	github.com/andeya/ameda v1.5.3 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kr/text v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/nyaruka/phonenumbers v1.0.55 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect

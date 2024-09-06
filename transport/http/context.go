@@ -78,7 +78,7 @@ func (s *Server) acquireContext(fastCtx *fasthttp.RequestCtx) *Context {
 	ctx.reset()
 	ctx.fastCtx = fastCtx
 	ctx.srv = s
-	ctx.middleware = s.Config().Middlewares
+	ctx.middleware = s.Config().middlewares
 	ctx.method = bytesconv.BytesToString(fastCtx.Method())
 	ctx.originalPath = bytesconv.BytesToString(fastCtx.URI().PathOriginal())
 	m, ok := methodMap[ctx.method]
@@ -286,13 +286,13 @@ func (ctx *Context) Returns(v interface{}, err error) error {
 	if err != nil {
 		return err
 	}
-	return ctx.srv.Config().Enc(ctx, v)
+	return ctx.srv.Config().enc(ctx, v)
 }
 
 // Result send any data
 func (ctx *Context) Result(code int, v interface{}) error {
 	ctx.SetStatusCode(code)
-	return ctx.srv.Config().Enc(ctx, v)
+	return ctx.srv.Config().enc(ctx, v)
 }
 
 // JSON wire json data

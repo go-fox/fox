@@ -138,7 +138,7 @@ func (r *router) ServeFastHTTP(fastCtx *fasthttp.RequestCtx) {
 	defer cancel()
 	reqCtx.SetContext(ctx)
 	if err := r.ServeHTTP(reqCtx); err != nil {
-		if catch := conf.Ene(reqCtx, err); catch != nil {
+		if catch := conf.ene(reqCtx, err); catch != nil {
 			_ = reqCtx.SendStatus(StatusInternalServerError)
 		}
 	}
@@ -162,7 +162,7 @@ func (s *Server) fastHTTPErrorHandler(fastCtx *fasthttp.RequestCtx, err error) {
 	} else {
 		err = errors.BadRequest("BAD_REQUEST", statusMessage[StatusBadRequest])
 	}
-	if catch := s.config.Ene(c, err); catch != nil {
+	if catch := s.config.ene(c, err); catch != nil {
 		_ = c.SendStatus(StatusInternalServerError)
 	}
 }

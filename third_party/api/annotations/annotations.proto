@@ -4,14 +4,13 @@ package fox.api;
 
 option go_package = "github.com/go-fox/fox/api/annotations;annotations";
 import "google/protobuf/descriptor.proto";
-import "google/api/http.proto";
 
 extend google.protobuf.FileOptions{
   InfoRule info=65000;
 }
 
 extend google.protobuf.ServiceOptions{
-    ServiceRule Service=66000;
+  ServiceRule Service=66000;
 }
 
 extend google.protobuf.MethodOptions{
@@ -19,17 +18,26 @@ extend google.protobuf.MethodOptions{
 }
 
 extend google.protobuf.FieldOptions{
-  TaggerRule tagger=68000;
+  optional string header =65000;
+  optional string path = 65001;
+  optional string query = 65002;
+  optional string form = 65003;
+  optional string json = 65004;
 }
 
 message ServiceRule{
   // Add middleware to the current service
-  repeated string middleware=55000;
+  repeated GenerateType Generate=55000;
+}
+enum GenerateType{
+  grpc =0;
+  http  = 1;
+  websocket = 2;
 }
 
 message MethodRule{
-  // Add middleware to the current method
-  repeated string middleware = 1;
+  // Add middleware to the current service
+  repeated GenerateType Generate=1;
   // A short summary of what the operation does.
   string summary=2;
   // A verbose explanation of the operation behavior. CommonMark syntax MAY be used for rich text representation.
@@ -37,15 +45,23 @@ message MethodRule{
   // A list of HTTP configuration rules that apply to individual API methods.
   //
   // **NOTE:** All service configuration rules follow "last one wins" order.
-  optional google.api.HttpRule http = 4;
+  optional HttpRule http = 4;
 }
 
-message TaggerRule{
-  optional string header =1;
-  optional string path = 2;
-  optional string query = 3;
-  optional string form = 4;
-  optional string json = 5;
+// HttpRule http rule
+message HttpRule{
+  oneof pattern{
+    string get = 66000;
+    string post = 66001;
+    string put = 66002;
+    string delete = 66003;
+    string patch = 66004;
+    string options = 66005;
+    string head = 66006;
+    string connect = 66007;
+    string trace = 66008;
+  }
+  repeated HttpRule additional_bindings = 66009;
 }
 
 // REQUIRED. Provides metadata about the API. The metadata MAY be used by tooling as required.

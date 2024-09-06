@@ -41,7 +41,11 @@ import (
 	"github.com/go-fox/fox/transport"
 )
 
-var _ transport.Server = (*Server)(nil)
+var (
+	_ transport.Server = (*Server)(nil)
+	// SupportPackageIsVersion1 http version
+	SupportPackageIsVersion1 = true
+)
 
 // Server is HTTP server
 type Server struct {
