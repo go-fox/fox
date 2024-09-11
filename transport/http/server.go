@@ -43,6 +43,9 @@ import (
 
 var (
 	_ transport.Server = (*Server)(nil)
+)
+
+const (
 	// SupportPackageIsVersion1 http version
 	SupportPackageIsVersion1 = true
 )
