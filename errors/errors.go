@@ -14,6 +14,9 @@ import (
 
 var _ error = (*Error)(nil)
 
+// SupportPackageIsVersion1 generate
+const SupportPackageIsVersion1 = true
+
 const (
 	UnknownCode   = 500 // UnknownCode 未知错误
 	UnknownReason = ""  // UnknownReason 未知错误原因

@@ -29,16 +29,17 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/go-fox/fox/errors"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"google.golang.org/protobuf/compiler/protogen"
+
+	"github.com/go-fox/fox/errors"
 
 	"google.golang.org/protobuf/proto"
 )
 
 const (
-	errorsPackage = protogen.GoImportPath("github.com/go-fox/fox/pkg/common/errors")
+	errorsPackage = protogen.GoImportPath("github.com/go-fox/fox/errors")
 	fmtPackage    = protogen.GoImportPath("fmt")
 )
 
