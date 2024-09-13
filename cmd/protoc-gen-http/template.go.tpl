@@ -9,7 +9,7 @@ const Operation{{$svrType}}{{.OriginalName}} = "/{{$svrName}}/{{.OriginalName}}"
 
 type {{.ServiceType}}HTTPServer interface {
 {{- range .MethodSets}}
-	{{.Name}}(context.Context, *{{.Request}}) (*{{.Reply}}, error)
+	{{.Comments}}{{.Name}}(context.Context, *{{.Request}}) (*{{.Reply}}, error)
 {{- end}}
 }
 

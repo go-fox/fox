@@ -1,4 +1,4 @@
-module github.com/go-fox/cmd/protoc-gen-fox
+module github.com/go-fox/cmd/protoc-gen-http
 
 go 1.22.1
 

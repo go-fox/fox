@@ -1,4 +1,4 @@
-// Package http
+// Package main
 // MIT License
 //
 // # Copyright (c) 2024 go-fox
@@ -21,54 +21,35 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-
-package http
+package main
 
 import (
-	"bytes"
-	_ "embed"
-	"strings"
-	"text/template"
+	"flag"
+	"fmt"
+
+	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
-//go:embed template.go.tpl
-var ceresTemplate string
+var showVersion = flag.Bool("version", false, "print the version and exit")
 
-type serviceDesc struct {
-	HttpPath    string
-	ServiceType string // Greeter
-	ServiceName string // helloworld.Greeter
-	Metadata    string // api/helloworld/helloworld.proto
-	Methods     []*methodDesc
-	MethodSets  map[string]*methodDesc
-}
-
-type methodDesc struct {
-	// method
-	Name         string
-	OriginalName string // The parsed original name
-	Num          int
-	Request      string
-	Reply        string
-	// http_rule
-	Path         string
-	Method       string
-	Body         string
-	ResponseBody string
-}
-
-func (s *serviceDesc) execute() string {
-	s.MethodSets = make(map[string]*methodDesc)
-	for _, m := range s.Methods {
-		s.MethodSets[m.Name] = m
+func main() {
+	flag.Parse()
+	if *showVersion {
+		fmt.Printf("protoc-gen-go-errors %v\n", Version)
+		return
 	}
-	buf := new(bytes.Buffer)
-	tmpl, err := template.New("http").Parse(strings.TrimSpace(ceresTemplate))
-	if err != nil {
-		panic(err)
-	}
-	if err := tmpl.Execute(buf, s); err != nil {
-		panic(err)
-	}
-	return strings.Trim(buf.String(), "\r\n")
+	var flags flag.FlagSet
+	protogen.Options{
+		ParamFunc: flags.Set,
+	}.Run(func(gen *protogen.Plugin) error {
+		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
+		for _, f := range gen.Files {
+			if !f.Generate {
+				continue
+			}
+			generateFile(gen, f)
+		}
+		return nil
+	})
 }

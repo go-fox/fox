@@ -33,15 +33,11 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/pluginpb"
 
-	"github.com/go-fox/cmd/protoc-gen-fox/grpc"
-	"github.com/go-fox/cmd/protoc-gen-fox/http"
 	"github.com/go-fox/fox/api/annotations"
 )
 
 const version = "0.0.1"
 
-var requireUnimplemented *bool
-var useGenericStreams *bool
 var omitempty *bool
 
 func main() {
@@ -53,8 +49,6 @@ func main() {
 	}
 
 	var flags flag.FlagSet
-	requireUnimplemented = flags.Bool("require_unimplemented_servers", true, "set to false to match legacy behavior")
-	useGenericStreams = flags.Bool("use_generic_streams_experimental", true, "set to true to use generic types for streaming client and server objects; this flag is EXPERIMENTAL and may be changed or removed in a future release")
 	omitempty = flag.Bool("omitempty", true, "omit if google.api is empty")
 	protogen.Options{
 		ParamFunc: flags.Set,
@@ -66,11 +60,8 @@ func main() {
 			if !f.Generate {
 				continue
 			}
-			if checkHave(f, annotations.GenerateType_grpc) {
-				grpc.GenerateFile(gen, f, requireUnimplemented, useGenericStreams, version)
-			}
 			if checkHave(f, annotations.GenerateType_http) {
-				http.GenerateFile(gen, f, omitempty, version)
+				GenerateFile(gen, f, omitempty, version)
 			}
 		}
 		return nil

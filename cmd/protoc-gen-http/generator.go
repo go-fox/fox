@@ -21,7 +21,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-package http
+package main
 
 import (
 	"fmt"
@@ -114,24 +114,25 @@ func (g *Generator) genService(service *protogen.Service) {
 		HttpPath:    g.httpPackage,
 		ServiceType: service.GoName,
 		ServiceName: string(service.Desc.FullName()),
+		Comments:    service.Comments.Leading.String(),
 		Metadata:    g.file.Desc.Path(),
 	}
 	for _, method := range service.Methods {
 		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
 			continue
 		}
-		rule, ok := proto.GetExtension(method.Desc.Options(), annotations.E_Method).(*annotations.HttpRule)
-		g.printf("rule:%v,isOk:%v,method:%v", rule, ok, method)
+		rule, ok := proto.GetExtension(method.Desc.Options(), annotations.E_Method).(*annotations.MethodRule)
 		if rule != nil && ok {
-			for _, bind := range rule.AdditionalBindings {
+			println("aaa")
+			for _, bind := range rule.Http.AdditionalBindings {
 				httpRule := g.buildHTTPRule(method, bind)
 				if httpRule != nil {
 					sd.Methods = append(sd.Methods)
 				}
 			}
-			httpRule := g.buildHTTPRule(method, rule)
+			httpRule := g.buildHTTPRule(method, rule.Http)
 			if httpRule != nil {
-				sd.Methods = append(sd.Methods, g.buildHTTPRule(method, rule))
+				sd.Methods = append(sd.Methods, g.buildHTTPRule(method, rule.Http))
 			}
 		} else if !g.omitempty {
 			path := fmt.Sprintf("/%s/%s", service.Desc.FullName(), method.Desc.Name())
@@ -151,31 +152,31 @@ func (g *Generator) buildHTTPRule(m *protogen.Method, rule *annotations.HttpRule
 	switch pattern := rule.Pattern.(type) {
 	case *annotations.HttpRule_Get:
 		path = pattern.Get
-		method = http.MethodGet
+		method = "Get"
 	case *annotations.HttpRule_Put:
 		path = pattern.Put
-		method = http.MethodPut
+		method = "Put"
 	case *annotations.HttpRule_Post:
 		path = pattern.Post
-		method = http.MethodPost
+		method = "Post"
 	case *annotations.HttpRule_Delete:
 		path = pattern.Delete
-		method = http.MethodDelete
+		method = "Delete"
 	case *annotations.HttpRule_Patch:
 		path = pattern.Patch
-		method = http.MethodPatch
+		method = "Patch"
 	case *annotations.HttpRule_Options:
 		path = pattern.Options
-		method = http.MethodOptions
+		method = "Options"
 	case *annotations.HttpRule_Head:
 		path = pattern.Head
-		method = http.MethodHead
+		method = "Head"
 	case *annotations.HttpRule_Trace:
 		path = pattern.Trace
-		method = http.MethodTrace
+		method = "Trace"
 	case *annotations.HttpRule_Connect:
 		path = pattern.Connect
-		method = http.MethodConnect
+		method = "Connect"
 	default:
 		return nil
 	}
@@ -193,6 +194,7 @@ func (g *Generator) buildMethodDesc(m *protogen.Method, method, path string) *me
 		Request:      g.writer.QualifiedGoIdent(m.Input.GoIdent),
 		Reply:        g.writer.QualifiedGoIdent(m.Output.GoIdent),
 		Path:         path,
+		Comments:     m.Comments.Leading.String(),
 		Method:       method,
 	}
 }
