@@ -27,4 +27,5 @@ import (
 	"github.com/go-fox/fox"
 )
 
-const Version = fox.AppVersion()
+// Version fox version
+var Version = fox.VersionFox()

@@ -147,3 +147,8 @@ func PrintVersion() {
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildTime"), color.BlueString(buildTime))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildStatus"), color.BlueString(buildStatus))
 }
+
+// VersionFox fox version
+func VersionFox() string {
+	return version
+}
