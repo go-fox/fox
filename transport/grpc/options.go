@@ -71,7 +71,7 @@ func DefaultSeverConfig() *ServerConfig {
 func RawServerConfig(key string) *ServerConfig {
 	conf := DefaultSeverConfig()
 	if err := config.Get(key).Scan(conf); err != nil {
-		return nil
+		panic(err)
 	}
 	return conf
 }
