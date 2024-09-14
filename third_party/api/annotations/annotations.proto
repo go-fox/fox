@@ -29,6 +29,7 @@ message ServiceRule{
   // Add middleware to the current service
   repeated GenerateType Generate=55000;
 }
+
 enum GenerateType{
   grpc =0;
   http  = 1;
@@ -46,6 +47,16 @@ message MethodRule{
   //
   // **NOTE:** All service configuration rules follow "last one wins" order.
   optional HttpRule http = 4;
+}
+
+message File{
+  string name = 1;
+  int64 size = 2;
+  bytes content = 3;
+}
+
+message UploadRequest{
+  repeated File files = 1;
 }
 
 // HttpRule http rule
