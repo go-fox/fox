@@ -15,12 +15,51 @@ type {{.ServiceType}}HTTPServer interface {
 
 func Register{{.ServiceType}}HTTPServer(s *{{$serverPath}}.Server, srv {{.ServiceType}}HTTPServer) {
 	{{- range .Methods}}
-	s.{{.Method}}("{{.Path}}", _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv))
+	s.{{.Method}}("{{.Path}}", _{{$svrType}}_{{.Name}}_{{.Num}}_HTTP_Handler(srv))
 	{{- end}}
 }
 
 {{range .Methods}}
-func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) func(ctx *{{$serverPath}}.Context) error {
+{{if .Upload }}
+func _{{$svrType}}_{{.Name}}_{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) func(ctx *{{$serverPath}}.Context) error {
+	return func(ctx *{{$serverPath}}.Context) error {
+		var in {{.Request}}
+		form, err := ctx.MultipartForm()
+		if err != nil {
+			return err
+		}
+		if fileheaders, ok := form.File["file"]; ok {
+			for _, fileheader := range fileheaders {
+				f, err := fileheader.Open()
+					if err != nil {
+					return err
+				}
+				filebuf := make([]byte, fileheader.Size)
+				_, err = f.Read(filebuf)
+				if err != nil {
+					return err
+				}
+				in.Files = append(in.Files, &annotations.File{
+					Name: fileheader.Filename,
+					Size: fileheader.Size,
+					Content:filebuf,
+				})
+			}
+		}
+		http.SetOperation(ctx, OperationUserUpload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.Upload(ctx, req.(*annotations.UploadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UploadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+{{else}}
+func _{{$svrType}}_{{.Name}}_{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) func(ctx *{{$serverPath}}.Context) error {
 	return func(ctx *{{$serverPath}}.Context) error {
 		var in {{.Request}}
 		if err := ctx.ShouldBind(&in{{.Body}}); err != nil {
@@ -38,6 +77,7 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
 		return ctx.Result(200, reply{{.ResponseBody}})
 	}
 }
+{{end}}
 {{end}}
 
 type {{.ServiceType}}HTTPClient interface {

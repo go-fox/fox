@@ -45,6 +45,7 @@ type serviceDesc struct {
 }
 
 type methodDesc struct {
+	Upload bool // 是否是上传方法
 	// method
 	Name         string
 	OriginalName string // The parsed original name

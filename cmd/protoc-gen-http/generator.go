@@ -38,8 +38,9 @@ import (
 )
 
 const (
-	contextPackage = protogen.GoImportPath("context")
-	httpPackage    = protogen.GoImportPath("github.com/go-fox/fox/transport/http")
+	contextPackage     = protogen.GoImportPath("context")
+	httpPackage        = protogen.GoImportPath("github.com/go-fox/fox/transport/http")
+	annotationsPackage = protogen.GoImportPath("github.com/go-fox/fox/api/annotations")
 )
 
 var methodSets = make(map[string]int)
@@ -123,7 +124,6 @@ func (g *Generator) genService(service *protogen.Service) {
 		}
 		rule, ok := proto.GetExtension(method.Desc.Options(), annotations.E_Method).(*annotations.MethodRule)
 		if rule != nil && ok {
-			println("aaa")
 			for _, bind := range rule.Http.AdditionalBindings {
 				httpRule := g.buildHTTPRule(method, bind)
 				if httpRule != nil {
@@ -186,8 +186,8 @@ func (g *Generator) buildHTTPRule(m *protogen.Method, rule *annotations.HttpRule
 
 func (g *Generator) buildMethodDesc(m *protogen.Method, method, path string) *methodDesc {
 	defer func() { methodSets[m.GoName]++ }()
-
 	return &methodDesc{
+		Upload:       m.Input.Desc.FullName() == "fox.api.UploadRequest",
 		Name:         m.GoName,
 		OriginalName: string(m.Desc.Name()),
 		Num:          methodSets[m.GoName],
