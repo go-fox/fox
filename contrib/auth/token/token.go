@@ -855,6 +855,10 @@ func (t *token) getTokenSignListByLoginId(ctx context.Context, loginId any, devi
 	if err != nil {
 		return []string{}, err
 	}
+	// 如果没有获取到session
+	if ss == nil {
+		return []string{}, nil
+	}
 	return ss.getTokenValueListByDevice(device), nil
 }
 
