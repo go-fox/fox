@@ -30,7 +30,7 @@ type Config struct {
 
 // DefaultConfig 默认参数
 func DefaultConfig() *Config {
-	return &Config{
+	c := &Config{
 		LoginType:             "login",
 		TokenName:             "authorization",
 		IsConcurrent:          true,
@@ -42,7 +42,10 @@ func DefaultConfig() *Config {
 		createTokenFunction:   defaultCreateTokenFunction,
 		generateUniqueToken:   defaultGenerateUniqueToken,
 		createSessionFunction: defaultCreateSessionFunction,
+		logger:                slog.With("mod", "auth.token"),
 	}
+	c.listener = newListenerCenter(c)
+	return c
 }
 
 // RawConfig scan config

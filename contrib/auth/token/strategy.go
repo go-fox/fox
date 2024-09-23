@@ -3,6 +3,7 @@ package token
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/duke-git/lancet/v2/random"
 	"github.com/google/uuid"
@@ -41,6 +42,9 @@ func defaultCreateSessionFunction(sessionId string, repository Repository) (*ses
 	ss := new(session)
 	ss.ID = sessionId
 	ss.repo = repository
+	ss.CreatedAt = time.Now().UnixMilli()
+	ss.SignList = SignList{}
+	ss.Data = make(map[string]interface{})
 	return ss, nil
 }
 
