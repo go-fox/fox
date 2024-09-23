@@ -56,7 +56,7 @@ func defaultGenerateUniqueToken(element string, maxTryCount int, createTokenFunc
 		}
 		v, err := checkTokenFunction(value)
 		// 如果检查token不存在则直接返回
-		if err == nil && v {
+		if err == nil && !v {
 			return value, nil
 		}
 		if maxTryCount > 0 && i >= maxTryCount {
