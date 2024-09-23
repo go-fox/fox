@@ -39,6 +39,7 @@ func DefaultConfig() *Config {
 		AutoRenew:             true,
 		ActiveTimeout:         -1,
 		MaxTryCount:           3,
+		MaxLoginCount:         -1,
 		createTokenFunction:   defaultCreateTokenFunction,
 		generateUniqueToken:   defaultGenerateUniqueToken,
 		createSessionFunction: defaultCreateSessionFunction,
