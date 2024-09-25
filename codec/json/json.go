@@ -29,7 +29,6 @@ import (
 	"reflect"
 	"sync"
 
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/go-fox/fox/codec"
@@ -42,14 +41,6 @@ var initOnce sync.Once
 
 var (
 	_ codec.Codec = (*Codec)(nil)
-	// MarshalOptions is a configurable JSON format marshaller.
-	MarshalOptions = protojson.MarshalOptions{
-		EmitUnpopulated: true,
-	}
-	// UnmarshalOptions is a configurable JSON format parser.
-	UnmarshalOptions = protojson.UnmarshalOptions{
-		DiscardUnknown: true,
-	}
 )
 
 func init() {
@@ -71,8 +62,6 @@ func (Codec) Marshal(v interface{}) ([]byte, error) {
 	switch m := v.(type) {
 	case json.Marshaler:
 		return m.MarshalJSON()
-	case proto.Message:
-		return MarshalOptions.Marshal(m)
 	default:
 		return json.Marshal(m)
 	}
@@ -83,8 +72,6 @@ func (Codec) Unmarshal(data []byte, v interface{}) error {
 	switch m := v.(type) {
 	case json.Unmarshaler:
 		return m.UnmarshalJSON(data)
-	case proto.Message:
-		return UnmarshalOptions.Unmarshal(data, m)
 	default:
 		rv := reflect.ValueOf(v)
 		for rv := rv; rv.Kind() == reflect.Ptr; {
@@ -94,7 +81,7 @@ func (Codec) Unmarshal(data []byte, v interface{}) error {
 			rv = rv.Elem()
 		}
 		if m, ok := reflect.Indirect(rv).Interface().(proto.Message); ok {
-			return UnmarshalOptions.Unmarshal(data, m)
+			return json.Unmarshal(data, m)
 		}
 		d := json.NewDecoder(bytes.NewReader(data))
 		d.UseNumber()
