@@ -26,10 +26,7 @@ package json
 import (
 	"bytes"
 	"encoding/json"
-	"reflect"
 	"sync"
-
-	"google.golang.org/protobuf/proto"
 
 	"github.com/go-fox/fox/codec"
 )
@@ -63,7 +60,7 @@ func (Codec) Marshal(v interface{}) ([]byte, error) {
 	case json.Marshaler:
 		return m.MarshalJSON()
 	default:
-		return json.Marshal(m)
+		return json.Marshal(v)
 	}
 }
 
@@ -73,16 +70,6 @@ func (Codec) Unmarshal(data []byte, v interface{}) error {
 	case json.Unmarshaler:
 		return m.UnmarshalJSON(data)
 	default:
-		rv := reflect.ValueOf(v)
-		for rv := rv; rv.Kind() == reflect.Ptr; {
-			if rv.IsNil() {
-				rv.Set(reflect.New(rv.Type().Elem()))
-			}
-			rv = rv.Elem()
-		}
-		if m, ok := reflect.Indirect(rv).Interface().(proto.Message); ok {
-			return json.Unmarshal(data, m)
-		}
 		d := json.NewDecoder(bytes.NewReader(data))
 		d.UseNumber()
 		return d.Decode(m)
