@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -292,6 +293,12 @@ func (ctx *Context) Returns(v interface{}, err error) error {
 // Result send any data
 func (ctx *Context) Result(code int, v interface{}) error {
 	ctx.SetStatusCode(code)
+	return ctx.srv.Config().enc(ctx, v)
+}
+
+// OkResult send data with a status of 200
+func (ctx *Context) OkResult(v any) error {
+	ctx.SetStatusCode(http.StatusOK)
 	return ctx.srv.Config().enc(ctx, v)
 }
 
