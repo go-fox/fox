@@ -71,6 +71,11 @@ func NewServer(opts ...ServerOption) *Server {
 	return NewWithConfig(conf)
 }
 
+// NewRouter create a router
+func NewRouter() Router {
+	return NewWithConfig()
+}
+
 // NewWithConfig create server with config
 func NewWithConfig(cs ...*ServerConfig) *Server {
 	c := DefaultServerConfig()
