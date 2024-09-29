@@ -57,6 +57,7 @@ type Router interface {
 	Static(pattern string, opts ...FsOption) Router
 
 	Mount(pattern string, router Router) Router
+	Use(args ...any) Router
 	Group(path string, handlers ...Handler) Router
 	Any(pattern string, handler Handler, middlewares ...Handler) Router
 }
