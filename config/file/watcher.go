@@ -25,6 +25,8 @@ package file
 
 import (
 	"context"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -52,13 +54,13 @@ func (w watcher) Next() ([]*config.DataSet, error) {
 				}
 			}
 		}
-		fi, err := os.Stat(w.f.path)
+		fi, err := os.Stat(w.f.path.(string))
 		if err != nil {
 			return nil, err
 		}
 		path := w.f.path
 		if fi.IsDir() {
-			path = filepath.Join(w.f.path, filepath.Base(event.Name))
+			path = filepath.Join(w.f.path.(string), filepath.Base(event.Name))
 		}
 		kv, err := w.f.loadFile(path)
 		if err != nil {
@@ -76,11 +78,16 @@ func (w watcher) Stop() error {
 }
 
 func newWatcher(f *file) (config.Watcher, error) {
+	switch f.path.(type) {
+	case fs.File:
+		return nil, errors.New("fs.File not supported")
+	case string:
+	}
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
-	if err = w.Add(f.path); err != nil {
+	if err = w.Add(f.path.(string)); err != nil {
 		return nil, err
 	}
 	ctx, cancelFunc := context.WithCancel(context.Background())
