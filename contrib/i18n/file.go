@@ -25,32 +25,50 @@ package i18n
 
 import (
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
 type file struct {
-	path string
+	path any
 }
 
-// NewFileSource file source
-func NewFileSource(path string) Source {
+// NewSource file source
+func NewSource(path any) Source {
+	switch path.(type) {
+	case string:
+	case fs.File:
+	default:
+		panic("path must be string or fs.File")
+	}
 	return &file{path: path}
 }
 
 // Load load
 func (f *file) Load() ([]*DataSet, error) {
-	stat, err := os.Stat(f.path)
-	if err != nil {
-		return nil, err
-	}
-	if stat.IsDir() {
-		return f.loadDir(f.path, make([]*DataSet, 0))
-	}
-	dataSet, err := f.loadFile(f.path)
-	if err != nil {
-		return nil, err
+	var dataSet *DataSet
+	switch path := f.path.(type) {
+	case string:
+		stat, err := os.Stat(path)
+		if err != nil {
+			return nil, err
+		}
+		if stat.IsDir() {
+			return f.loadDir(path, make([]*DataSet, 0))
+		}
+		dataSet, err = f.loadFile(path)
+		if err != nil {
+			return nil, err
+		}
+	case fs.File:
+		var err error
+		dataSet, err = f.loadFile(path)
+		if err != nil {
+			return nil, err
+		}
+		return []*DataSet{dataSet}, nil
 	}
 	return []*DataSet{dataSet}, nil
 }
@@ -75,19 +93,24 @@ func (f *file) loadDir(path string, dataSets []*DataSet) ([]*DataSet, error) {
 }
 
 // loadFile load file
-func (f *file) loadFile(path string) (*DataSet, error) {
-	file, err := os.Open(path)
+func (f *file) loadFile(path any) (*DataSet, error) {
+	var fsFile fs.File
+	var err error
+	switch p := path.(type) {
+	case string:
+		fsFile, err = os.Open(p)
+		if err != nil {
+			return nil, err
+		}
+	case fs.File:
+		fsFile = p
+	}
+	defer fsFile.Close()
+	data, err := io.ReadAll(fsFile)
 	if err != nil {
 		return nil, err
 	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-	data, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	info, err := file.Stat()
+	info, err := fsFile.Stat()
 	if err != nil {
 		return nil, err
 	}

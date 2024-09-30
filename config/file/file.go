@@ -25,6 +25,7 @@ package file
 
 import (
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,26 +34,43 @@ import (
 )
 
 type file struct {
-	path string
+	path any
 }
 
 // NewSource 创建文件资源管理器
-func NewSource(path string) config.Source {
+func NewSource(path any) config.Source {
+	switch path.(type) {
+	case string:
+	case fs.File:
+	default:
+		panic("path must be string or fs.File")
+	}
 	return &file{path: path}
 }
 
 // Load 加载资源
 func (f *file) Load() ([]*config.DataSet, error) {
-	stat, err := os.Stat(f.path)
-	if err != nil {
-		return nil, err
-	}
-	if stat.IsDir() {
-		return f.loadDir(f.path, make([]*config.DataSet, 0))
-	}
-	dataSet, err := f.loadFile(f.path)
-	if err != nil {
-		return nil, err
+	var dataSet *config.DataSet
+	switch path := f.path.(type) {
+	case string:
+		stat, err := os.Stat(path)
+		if err != nil {
+			return nil, err
+		}
+		if stat.IsDir() {
+			return f.loadDir(path, make([]*config.DataSet, 0))
+		}
+		dataSet, err = f.loadFile(path)
+		if err != nil {
+			return nil, err
+		}
+	case fs.File:
+		var err error
+		dataSet, err = f.loadFile(path)
+		if err != nil {
+			return nil, err
+		}
+		return []*config.DataSet{dataSet}, nil
 	}
 	return []*config.DataSet{dataSet}, nil
 }
@@ -82,19 +100,24 @@ func (f *file) loadDir(path string, dataSets []*config.DataSet) ([]*config.DataS
 }
 
 // loadFile 加载文件
-func (f *file) loadFile(path string) (*config.DataSet, error) {
-	file, err := os.Open(path)
+func (f *file) loadFile(path any) (*config.DataSet, error) {
+	var fsFile fs.File
+	var err error
+	switch p := path.(type) {
+	case string:
+		fsFile, err = os.Open(p)
+		if err != nil {
+			return nil, err
+		}
+	case fs.File:
+		fsFile = p
+	}
+	defer fsFile.Close()
+	data, err := io.ReadAll(fsFile)
 	if err != nil {
 		return nil, err
 	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-	data, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	info, err := file.Stat()
+	info, err := fsFile.Stat()
 	if err != nil {
 		return nil, err
 	}
