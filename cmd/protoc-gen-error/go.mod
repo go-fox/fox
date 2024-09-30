@@ -3,7 +3,7 @@ module github.com/go-fox/cmd/protoc-gen-error
 go 1.22.1
 
 require (
-	github.com/go-fox/fox v0.0.0-20240911041716-918b71cb3969
+	github.com/go-fox/fox v0.0.0-20240929082546-f42326648f68
 	golang.org/x/text v0.18.0
 	google.golang.org/protobuf v1.34.2
 )

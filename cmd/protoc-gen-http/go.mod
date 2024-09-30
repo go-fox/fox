@@ -3,7 +3,7 @@ module github.com/go-fox/cmd/protoc-gen-http
 go 1.22.1
 
 require (
-	github.com/go-fox/fox v0.0.0-20240902103722-4ce5f320c107
+	github.com/go-fox/fox v0.0.0-20240929082546-f42326648f68
 	github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e
 	google.golang.org/protobuf v1.34.2
 )
