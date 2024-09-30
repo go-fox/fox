@@ -25,7 +25,6 @@ package file
 
 import (
 	"context"
-	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -43,33 +42,39 @@ type watcher struct {
 }
 
 func (w watcher) Next() ([]*config.DataSet, error) {
-	select {
-	case <-w.ctx.Done():
-		return nil, w.ctx.Err()
-	case event := <-w.fw.Events:
-		if event.Op == fsnotify.Rename {
-			if _, err := os.Stat(event.Name); err == nil || os.IsExist(err) {
-				if err := w.fw.Add(event.Name); err != nil {
-					return nil, err
+	switch w.f.path.(type) {
+	case fs.File:
+		return make([]*config.DataSet, 0), nil
+	default:
+		select {
+		case <-w.ctx.Done():
+			return nil, w.ctx.Err()
+		case event := <-w.fw.Events:
+			if event.Op == fsnotify.Rename {
+				if _, err := os.Stat(event.Name); err == nil || os.IsExist(err) {
+					if err := w.fw.Add(event.Name); err != nil {
+						return nil, err
+					}
 				}
 			}
-		}
-		fi, err := os.Stat(w.f.path.(string))
-		if err != nil {
+			fi, err := os.Stat(w.f.path.(string))
+			if err != nil {
+				return nil, err
+			}
+			path := w.f.path
+			if fi.IsDir() {
+				path = filepath.Join(w.f.path.(string), filepath.Base(event.Name))
+			}
+			kv, err := w.f.loadFile(path)
+			if err != nil {
+				return nil, err
+			}
+			return []*config.DataSet{kv}, nil
+		case err := <-w.fw.Errors:
 			return nil, err
 		}
-		path := w.f.path
-		if fi.IsDir() {
-			path = filepath.Join(w.f.path.(string), filepath.Base(event.Name))
-		}
-		kv, err := w.f.loadFile(path)
-		if err != nil {
-			return nil, err
-		}
-		return []*config.DataSet{kv}, nil
-	case err := <-w.fw.Errors:
-		return nil, err
 	}
+
 }
 
 func (w watcher) Stop() error {
@@ -80,21 +85,21 @@ func (w watcher) Stop() error {
 func newWatcher(f *file) (config.Watcher, error) {
 	switch f.path.(type) {
 	case fs.File:
-		return nil, errors.New("fs.File not supported")
-	case string:
+		return &watcher{f: f, ctx: context.Background()}, nil
+	default:
+		w, err := fsnotify.NewWatcher()
+		if err != nil {
+			return nil, err
+		}
+		if err = w.Add(f.path.(string)); err != nil {
+			return nil, err
+		}
+		ctx, cancelFunc := context.WithCancel(context.Background())
+		return &watcher{
+			f:      f,
+			fw:     w,
+			ctx:    ctx,
+			cancel: cancelFunc,
+		}, nil
 	}
-	w, err := fsnotify.NewWatcher()
-	if err != nil {
-		return nil, err
-	}
-	if err = w.Add(f.path.(string)); err != nil {
-		return nil, err
-	}
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	return &watcher{
-		f:      f,
-		fw:     w,
-		ctx:    ctx,
-		cancel: cancelFunc,
-	}, nil
 }
