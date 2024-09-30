@@ -49,6 +49,7 @@ var (
 	appName     string // 应用名称
 	hostName    string // 主机名
 	appVersion  string // 应用版本
+	appCommit   string // 应用提交的hash值
 	buildTime   string // 构建时间
 	buildUser   string // 构建的用户
 	buildStatus string // 应用构建状态
@@ -90,9 +91,27 @@ func AppName() string {
 	return appName
 }
 
+// AppCommit 返回git提交的hash值
+func AppCommit() string {
+	if len(appCommit) >= 7 {
+		return appCommit[:7]
+	}
+	return appCommit
+}
+
 // AppVersion 应用版本
 func AppVersion() string {
 	return appVersion
+}
+
+// AppVersionSting 获取版本字符串
+// (format is "Version/CommitHash" or only "Version" if CommitHash is empty)
+func AppVersionSting() string {
+	var str = appVersion
+	if AppCommit() != "" {
+		str += "/" + AppCommit()
+	}
+	return str
 }
 
 // BuildTime 构建时间
@@ -137,9 +156,9 @@ func AppZone() string {
 
 // PrintVersion print version
 func PrintVersion() {
-	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("name"), color.BlueString(appName))
-	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("version"), color.BlueString(appVersion))
-	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("hostname"), color.BlueString(hostName))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("name"), color.BlueString(AppName()))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("version"), color.BlueString(AppVersionSting()))
+	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("hostname"), color.BlueString(HostName()))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("foxVersion"), color.BlueString(version))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("goVersion"), color.BlueString(goVersion))
 	fmt.Printf("[%-3s]> %-30s => %s\n", "fox", color.RedString("buildUser"), color.BlueString(buildUser))
