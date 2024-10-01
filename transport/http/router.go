@@ -59,6 +59,7 @@ type Router interface {
 	Mount(pattern string, router Router) Router
 	Use(args ...any) Router
 	Group(path string, handlers ...Handler) Router
+	Route(fn func(r Router))
 	Any(pattern string, handler Handler, middlewares ...Handler) Router
 }
 
@@ -213,8 +214,8 @@ func (r *router) Use(args ...any) Router {
 			panic(fmt.Sprintf("use: invalid handler %v\n", reflect.TypeOf(arg)))
 		}
 	}
-	if len(prefixes) == 0 {
-		prefixes = append(prefixes, prefix)
+	if len(prefixes) == 0 && len(handlers) != 0 {
+		r.middlewares = append(r.middlewares, handlers...)
 	}
 	for _, s := range prefixes {
 		if subRouter != nil {
@@ -243,6 +244,20 @@ func (r *router) Group(prefix string, handlers ...Handler) Router {
 		middlewares: mws,
 		srv:         r.srv,
 	}
+}
+
+// Route another form of group
+func (r *router) Route(fn func(r Router)) {
+	prefix := r.clearPath("")
+	mws := make([]Handler, len(r.middlewares))
+	copy(mws, r.middlewares)
+	p := &router{
+		prefix:      prefix,
+		tree:        r.tree,
+		middlewares: mws,
+		srv:         r.srv,
+	}
+	fn(p)
 }
 
 // Any register the handler on all HTTP methods
