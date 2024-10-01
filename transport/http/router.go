@@ -208,6 +208,8 @@ func (r *router) Use(args ...any) Router {
 			prefixes = arg
 		case Handler:
 			handlers = append(handlers, arg)
+		case func(ctx *Context) error:
+			handlers = append(handlers, arg)
 		case middleware.Middleware:
 			middlewares = append(middlewares, arg)
 		default:
