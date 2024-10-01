@@ -37,6 +37,7 @@ func (r *RouteParams) Add(key, value string) {
 // remove remove
 func (r *RouteParams) remove(index int) {
 	r.keys = append(r.keys[:index], r.keys[index+1:]...)
+	r.values = append(r.values[:index], r.values[index+1:]...)
 }
 
 // Get will get path param value
