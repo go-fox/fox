@@ -347,7 +347,7 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) (*node, H
 		}
 	}
 
-	return nil, nil
+	return nil, mws
 }
 
 func (n *node) findPattern(pattern string) bool {
