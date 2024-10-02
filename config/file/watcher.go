@@ -44,7 +44,8 @@ type watcher struct {
 func (w watcher) Next() ([]*config.DataSet, error) {
 	switch w.f.path.(type) {
 	case fs.File:
-		return make([]*config.DataSet, 0), nil
+		<-w.ctx.Done()
+		return nil, w.ctx.Err()
 	default:
 		select {
 		case <-w.ctx.Done():
