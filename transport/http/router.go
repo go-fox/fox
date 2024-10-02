@@ -92,35 +92,38 @@ func (r *router) ServeHTTP(ctx *Context) error {
 	if !ok {
 		return ctx.SetStatusCode(StatusBadRequest).SendString(default405Body)
 	}
-	if _, handler, middlewares := r.tree.FindRoute(ctx, method, routePath); handler != nil {
-		ctx.index = -1
-		ctx.handlers = append(middlewares, handler)
-		tr, ok := transport.FromServerContext(ctx.Context())
-		if !ok {
-			pathTemplate := ctx.PathTemplate()
-			v := &Transport{
-				original:     ctx.Path(),
-				operation:    pathTemplate,
-				pathTemplate: pathTemplate,
-				request:      ctx.Request(),
-				response:     ctx.Response(),
+	_, handler, middlewares := r.tree.FindRoute(ctx, method, routePath)
+	if handler == nil {
+		handler = func(ctx *Context) error {
+			if ctx.methodNotAllowed {
+				return ctx.SetStatusCode(StatusBadRequest).SendString(default405Body)
 			}
-			if ctx.srv.endpoint != nil {
-				v.endpoint = ctx.srv.endpoint.String()
-			}
-			ctx.SetContext(transport.NewServerContext(ctx.Context(), v))
-		} else {
-			pathTemplate := ctx.PathTemplate()
-			v := tr.(*Transport)
-			v.operation = pathTemplate
-			v.pathTemplate = pathTemplate
+			return ctx.SetStatusCode(StatusNotFound).SendString(default404Body)
 		}
-		return ctx.Next()
 	}
-	if ctx.methodNotAllowed {
-		return ctx.SetStatusCode(StatusBadRequest).SendString(default405Body)
+	ctx.index = -1
+	ctx.handlers = append(middlewares, handler)
+	tr, ok := transport.FromServerContext(ctx.Context())
+	if !ok {
+		pathTemplate := ctx.PathTemplate()
+		v := &Transport{
+			original:     ctx.Path(),
+			operation:    pathTemplate,
+			pathTemplate: pathTemplate,
+			request:      ctx.Request(),
+			response:     ctx.Response(),
+		}
+		if ctx.srv.endpoint != nil {
+			v.endpoint = ctx.srv.endpoint.String()
+		}
+		ctx.SetContext(transport.NewServerContext(ctx.Context(), v))
+	} else {
+		pathTemplate := ctx.PathTemplate()
+		v := tr.(*Transport)
+		v.operation = pathTemplate
+		v.pathTemplate = pathTemplate
 	}
-	return ctx.SetStatusCode(StatusNotFound).SendString(default404Body)
+	return ctx.Next()
 }
 
 // ServeFastHTTP fast http proxy

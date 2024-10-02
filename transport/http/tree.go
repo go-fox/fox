@@ -200,9 +200,9 @@ func (n *node) FindRoute(ctx *Context, method methodType, path string) (*node, H
 	ctx.routePath = ""
 	ctx.routeParams.Reset()
 
-	rn := n.findRoute(ctx, method, path)
+	rn, mws := n.findRoute(ctx, method, path)
 	if rn == nil {
-		return nil, nil, nil
+		return nil, nil, mws
 	}
 
 	// append params
@@ -215,7 +215,7 @@ func (n *node) FindRoute(ctx *Context, method methodType, path string) (*node, H
 		ctx.routePatterns = append(ctx.routePatterns, ctx.routePattern)
 		ctx.pathTemplate = ctx.montageRoutePatterns()
 	}
-	return rn, rn.endpoints.Value(method).handler, getMiddleware(rn, method)
+	return rn, rn.endpoints.Value(method).handler, append(mws, getMiddleware(rn, method)...)
 }
 
 func getMiddleware(cur *node, method methodType) HandlersChain {
@@ -229,7 +229,9 @@ func getMiddleware(cur *node, method methodType) HandlersChain {
 	return middlewares
 }
 
-func (n *node) findRoute(ctx *Context, method methodType, path string) *node {
+// findRoute 查找router，并返回路径上中间件
+func (n *node) findRoute(ctx *Context, method methodType, path string) (*node, HandlersChain) {
+	mws := HandlersChain{}
 	curNode := n
 	curPath := path
 	for t, ns := range curNode.children {
@@ -254,6 +256,7 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) *node {
 				continue
 			}
 			search = search[len(cur.prefix):]
+			mws = append(mws, cur.endpoints.Value(method).middleware...) // 匹配上了就累加
 		case ntRegexp, ntParam:
 			if search == "" {
 				continue
@@ -288,13 +291,13 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) *node {
 					if cur.isLeaf() {
 						if e := cur.endpoints[method]; e != nil && e.handler != nil {
 							ctx.routeParams.keys = append(ctx.routeParams.keys, e.paramKeys...)
-							return cur
+							return cur, mws
 						}
 					}
 				}
 
-				if find := cur.findRoute(ctx, method, search); find != nil {
-					return find
+				if find, curMws := cur.findRoute(ctx, method, search); find != nil {
+					return find, append(mws, curMws...)
 				}
 
 				ctx.routeParams.values = ctx.routeParams.values[:preValLen]
@@ -316,7 +319,7 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) *node {
 			if cur.isLeaf() {
 				if e := cur.endpoints[method]; e != nil && e.handler != nil {
 					ctx.routeParams.keys = append(ctx.routeParams.keys, e.paramKeys...)
-					return cur
+					return cur, mws
 				}
 				for e := range cur.endpoints {
 					if e == mALL || e == mSTUB {
@@ -332,8 +335,8 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) *node {
 		}
 
 		// recursively find the next node..
-		if find := cur.findRoute(ctx, method, search); find != nil {
-			return find
+		if find, curMws := cur.findRoute(ctx, method, search); find != nil {
+			return find, append(mws, curMws...)
 		}
 
 		// Did not find the final handler, let's remove the param here if it was set
@@ -344,7 +347,7 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) *node {
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (n *node) findPattern(pattern string) bool {
