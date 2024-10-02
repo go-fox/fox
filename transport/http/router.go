@@ -216,8 +216,8 @@ func (r *router) Use(args ...any) Router {
 			panic(fmt.Sprintf("use: invalid handler %v\n", reflect.TypeOf(arg)))
 		}
 	}
-	if len(prefixes) == 0 && len(handlers) != 0 {
-		r.middlewares = append(r.middlewares, handlers...)
+	if len(prefixes) == 0 {
+		prefixes = append(prefixes, prefix)
 	}
 	for _, s := range prefixes {
 		if subRouter != nil {
