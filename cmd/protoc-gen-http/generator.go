@@ -184,10 +184,43 @@ func (g *Generator) buildHTTPRule(m *protogen.Method, rule *annotations.HttpRule
 	return md
 }
 
+// isUpload 判断是否是上传
+func (g *Generator) uploadFiled(m *protogen.Method) (ret []UploadFields) {
+	fields := m.Input.Desc.Fields()
+	for i := range fields.Len() {
+		if fields.Get(i).Message() != nil && fields.Get(i).Message().FullName() == "fox.api.File" {
+			tagName := string(fields.Get(i).Name())
+			s, ok := proto.GetExtension(fields.Get(i).Options(), annotations.E_Form).(string)
+			if ok && len(s) > 0 {
+				tagName = s
+			}
+			ret = append(ret, UploadFields{
+				Name:    GoCamelCase(string(fields.Get(i).Name())),
+				TagName: tagName,
+				IsList:  fields.Get(i).IsList(),
+			})
+		}
+
+	}
+	return
+}
+
 func (g *Generator) buildMethodDesc(m *protogen.Method, method, path string) *methodDesc {
 	defer func() { methodSets[m.GoName]++ }()
+	uploadFields := g.uploadFiled(m)
+	if len(uploadFields) > 0 {
+		g.writer.QualifiedGoIdent(protogen.GoIdent{
+			GoName:       "File",
+			GoImportPath: "github.com/go-fox/fox/api/annotations",
+		})
+	}
 	return &methodDesc{
-		Upload:       m.Input.Desc.FullName() == "fox.api.UploadRequest",
+		Upload:       len(uploadFields) > 0,
+		UploadFields: uploadFields,
+		FileQualifiedGoIdent: g.writer.QualifiedGoIdent(protogen.GoIdent{
+			GoName:       "File",
+			GoImportPath: "github.com/go-fox/fox/api/annotations",
+		}),
 		Name:         m.GoName,
 		OriginalName: string(m.Desc.Name()),
 		Num:          methodSets[m.GoName],
@@ -338,3 +371,45 @@ func isASCIIDigit(c byte) bool {
 }
 
 const deprecationComment = "// Deprecated: Do not use."
+
+// GoCamelCase camel-cases a protobuf name for use as a Go identifier.
+//
+// If there is an interior underscore followed by a lower case letter,
+// drop the underscore and convert the letter to upper case.
+func GoCamelCase(s string) string {
+	// Invariant: if the next letter is lower case, it must be converted
+	// to upper case.
+	// That is, we process a word at a time, where words are marked by _ or
+	// upper case letter. Digits are treated as words.
+	var b []byte
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case c == '.' && i+1 < len(s) && isASCIILower(s[i+1]):
+			// Skip over '.' in ".{{lowercase}}".
+		case c == '.':
+			b = append(b, '_') // convert '.' to '_'
+		case c == '_' && (i == 0 || s[i-1] == '.'):
+			// Convert initial '_' to ensure we start with a capital letter.
+			// Do the same for '_' after '.' to match historic behavior.
+			b = append(b, 'X') // convert '_' to 'X'
+		case c == '_' && i+1 < len(s) && isASCIILower(s[i+1]):
+			// Skip over '_' in "_{{lowercase}}".
+		case isASCIIDigit(c):
+			b = append(b, c)
+		default:
+			// Assume we have a letter now - if not, it's a bogus identifier.
+			// The next word is a sequence of characters that must start upper case.
+			if isASCIILower(c) {
+				c -= 'a' - 'A' // convert lowercase to uppercase
+			}
+			b = append(b, c)
+
+			// Accept lower case sequence that follows.
+			for ; i+1 < len(s) && isASCIILower(s[i+1]); i++ {
+				b = append(b, s[i+1])
+			}
+		}
+	}
+	return string(b)
+}

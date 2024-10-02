@@ -44,8 +44,17 @@ type serviceDesc struct {
 	Comments    string
 }
 
+// UploadFields 上传字段
+type UploadFields struct {
+	Name    string // 上传的名称
+	TagName string // 读取的名称
+	IsList  bool
+}
+
 type methodDesc struct {
-	Upload bool // 是否是上传方法
+	Upload               bool // 是否是上传方法
+	UploadFields         []UploadFields
+	FileQualifiedGoIdent string
 	// method
 	Name         string
 	OriginalName string // The parsed original name

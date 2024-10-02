@@ -21,41 +21,48 @@ func Register{{.ServiceType}}HTTPServer(r {{$serverPath}}.Router, srv {{.Service
 
 {{range .Methods}}
 {{if .Upload }}
+{{$FileQualifiedGoIdent:=.FileQualifiedGoIdent}}
 func _{{$svrType}}_{{.Name}}_{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) func(ctx *{{$serverPath}}.Context) error {
 	return func(ctx *{{$serverPath}}.Context) error {
 		var in {{.Request}}
 		form, err := ctx.MultipartForm()
 		if err != nil {
 			return err
-		}
-		if fileheaders, ok := form.File["file"]; ok {
+		}{{ range .UploadFields }}
+		if fileheaders, ok := form.File["{{.TagName}}"]; ok {
 			for _, fileheader := range fileheaders {
 				f, err := fileheader.Open()
-					if err != nil {
+				if err != nil {
 					return err
 				}
 				filebuf := make([]byte, fileheader.Size)
 				_, err = f.Read(filebuf)
 				if err != nil {
 					return err
-				}
-				in.Files = append(in.Files, &annotations.File{
+				}{{ if .IsList }}
+				in.{{.Name}} = append(in.{{.Name}}, &{{$FileQualifiedGoIdent}}{
 					Name: fileheader.Filename,
 					Size: fileheader.Size,
 					Content:filebuf,
 				})
+				{{else}}
+				in.{{.Name}} = &{{$FileQualifiedGoIdent}}{
+					Name: fileheader.Filename,
+					Size: fileheader.Size,
+					Content:filebuf,
+				}{{ end }}
 			}
-		}
-		http.SetOperation(ctx, OperationUserUpload)
+		}{{ end }}
+		{{$serverPath}}.SetOperation(ctx,Operation{{$svrType}}{{.OriginalName}})
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.Upload(ctx, req.(*annotations.UploadRequest))
+			return srv.{{.Name}}(ctx, req.(*{{.Request}}))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*UploadResponse)
-		return ctx.Result(200, reply)
+		reply := out.(*{{.Reply}})
+		return ctx.Result(200, reply{{.ResponseBody}})
 	}
 }
 {{else}}
