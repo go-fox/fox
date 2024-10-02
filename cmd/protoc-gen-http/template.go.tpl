@@ -13,9 +13,9 @@ type {{.ServiceType}}HTTPServer interface {
 {{- end}}
 }
 
-func Register{{.ServiceType}}HTTPServer(s *{{$serverPath}}.Server, srv {{.ServiceType}}HTTPServer) {
+func Register{{.ServiceType}}HTTPServer(r {{$serverPath}}.Router, srv {{.ServiceType}}HTTPServer) {
 	{{- range .Methods}}
-	s.{{.Method}}("{{.Path}}", _{{$svrType}}_{{.Name}}_{{.Num}}_HTTP_Handler(srv))
+	r.{{.Method}}("{{.Path}}", _{{$svrType}}_{{.Name}}_{{.Num}}_HTTP_Handler(srv))
 	{{- end}}
 }
 
