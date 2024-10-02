@@ -74,6 +74,7 @@ type router struct {
 	middlewares []Handler
 	srv         *Server
 	parent      *router
+	route       bool
 }
 
 // ServeHTTP serve HTTP
@@ -219,6 +220,11 @@ func (r *router) Use(args ...any) Router {
 			panic(fmt.Sprintf("use: invalid handler %v\n", reflect.TypeOf(arg)))
 		}
 	}
+	// 如果是使用了route方法，则使用use的时候就是把中间件加入到组内
+	if r.route {
+		r.middlewares = append(r.middlewares, handlers...)
+		return r
+	}
 	if len(prefixes) == 0 {
 		prefixes = append(prefixes, prefix)
 	}
@@ -248,6 +254,7 @@ func (r *router) Group(prefix string, handlers ...Handler) Router {
 		tree:        r.tree,
 		middlewares: mws,
 		srv:         r.srv,
+		route:       r.route,
 	}
 }
 
@@ -261,6 +268,7 @@ func (r *router) Route(fn func(r Router)) {
 		tree:        r.tree,
 		middlewares: mws,
 		srv:         r.srv,
+		route:       true,
 	}
 	fn(p)
 }
