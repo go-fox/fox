@@ -105,6 +105,9 @@ const (
 )
 
 func (r endpoints) Value(method methodType) *endpoint {
+	if r == nil {
+		return &endpoint{}
+	}
 	mh, ok := r[method]
 	if !ok {
 		mh = &endpoint{}
