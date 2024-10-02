@@ -199,10 +199,11 @@ func (n *node) FindRoute(ctx *Context, method methodType, path string) (*node, H
 	// reset data
 	ctx.routePath = ""
 	ctx.routeParams.Reset()
-
+	rootMws := n.endpoints.Value(method).middleware
 	rn, mws := n.findRoute(ctx, method, path)
+	rootMws = append(rootMws, mws...)
 	if rn == nil {
-		return nil, nil, mws
+		return nil, nil, rootMws
 	}
 
 	// append params
@@ -215,7 +216,8 @@ func (n *node) FindRoute(ctx *Context, method methodType, path string) (*node, H
 		ctx.routePatterns = append(ctx.routePatterns, ctx.routePattern)
 		ctx.pathTemplate = ctx.montageRoutePatterns()
 	}
-	return rn, rn.endpoints.Value(method).handler, append(mws, getMiddleware(rn, method)...)
+	rootMws = append(rootMws, getMiddleware(rn, method)...)
+	return rn, rn.endpoints.Value(method).handler, rootMws
 }
 
 func getMiddleware(cur *node, method methodType) HandlersChain {
