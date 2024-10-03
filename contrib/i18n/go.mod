@@ -1,4 +1,4 @@
-module github.com/go-fox/fox/contrilb/i18n
+module github.com/go-fox/fox/contrib/i18n
 
 require (
 	dario.cat/mergo v1.0.0
