@@ -6,12 +6,18 @@ import (
 )
 
 // Save 保存
-func (f *File) Save(path string) (string, error) {
-	ext := filepath.Ext(path)
+func (f *File) Save(filename string) (string, error) {
+	ext := filepath.Ext(filename)
 	if len(ext) == 0 {
-		path = filepath.Join(path, f.Name)
+		filename = filepath.Join(filename, f.Name)
 	}
-	file, err := os.Create(path)
+	path := filepath.Dir(filename)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
+			return "", err
+		}
+	}
+	file, err := os.Create(filename)
 	if err != nil {
 		return "", err
 	}
