@@ -25,5 +25,5 @@ func (f *File) Save(filename string) (string, error) {
 	}
 	defer file.Close()
 	_, err = file.Write(f.Content)
-	return path, err
+	return filename, err
 }
