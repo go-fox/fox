@@ -31,6 +31,7 @@ github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nos
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
 github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e h1:qAoClb5Wx+B5Km4jpEx5mXowiyWn9/mK2/Rb5lJhOJc=
 github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e/go.mod h1:QPZh4tuVARsIf1lmioqHu18l5PtaJr7aj7FvRD4/GfU=
+github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f/go.mod h1:QPZh4tuVARsIf1lmioqHu18l5PtaJr7aj7FvRD4/GfU=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=

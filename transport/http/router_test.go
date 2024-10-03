@@ -32,6 +32,9 @@ import (
 
 func TestRouter(t *testing.T) {
 	v2 := NewServer()
+	v2.Use(func(ctx *Context) error {
+		return ctx.Next()
+	})
 	{
 		v2.Static("/files/*", FSRootPath("./static"))
 		v2.Get("/download/{path}", func(ctx *Context) error {

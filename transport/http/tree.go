@@ -203,8 +203,7 @@ func (n *node) FindRoute(ctx *Context, method methodType, path string) (*node, H
 	ctx.routePath = ""
 	ctx.routeParams.Reset()
 	rootMws := n.endpoints.Value(method).middleware
-	rn, mws := n.findRoute(ctx, method, path)
-	rootMws = append(rootMws, mws...)
+	rn := n.findRoute(ctx, method, path)
 	if rn == nil {
 		return nil, nil, rootMws
 	}
@@ -235,8 +234,7 @@ func getMiddleware(cur *node, method methodType) HandlersChain {
 }
 
 // findRoute 查找router，并返回路径上中间件
-func (n *node) findRoute(ctx *Context, method methodType, path string) (*node, HandlersChain) {
-	mws := HandlersChain{}
+func (n *node) findRoute(ctx *Context, method methodType, path string) *node {
 	curNode := n
 	curPath := path
 	for t, ns := range curNode.children {
@@ -261,7 +259,6 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) (*node, H
 				continue
 			}
 			search = search[len(cur.prefix):]
-			mws = append(mws, cur.endpoints.Value(method).middleware...) // 匹配上了就累加
 		case ntRegexp, ntParam:
 			if search == "" {
 				continue
@@ -296,13 +293,13 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) (*node, H
 					if cur.isLeaf() {
 						if e := cur.endpoints[method]; e != nil && e.handler != nil {
 							ctx.routeParams.keys = append(ctx.routeParams.keys, e.paramKeys...)
-							return cur, mws
+							return cur
 						}
 					}
 				}
 
-				if find, curMws := cur.findRoute(ctx, method, search); find != nil {
-					return find, append(mws, curMws...)
+				if find := cur.findRoute(ctx, method, search); find != nil {
+					return find
 				}
 
 				ctx.routeParams.values = ctx.routeParams.values[:preValLen]
@@ -324,7 +321,7 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) (*node, H
 			if cur.isLeaf() {
 				if e := cur.endpoints[method]; e != nil && e.handler != nil {
 					ctx.routeParams.keys = append(ctx.routeParams.keys, e.paramKeys...)
-					return cur, mws
+					return cur
 				}
 				for e := range cur.endpoints {
 					if e == mALL || e == mSTUB {
@@ -340,8 +337,8 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) (*node, H
 		}
 
 		// recursively find the next node..
-		if find, curMws := cur.findRoute(ctx, method, search); find != nil {
-			return find, append(mws, curMws...)
+		if find := cur.findRoute(ctx, method, search); find != nil {
+			return find
 		}
 
 		// Did not find the final handler, let's remove the param here if it was set
@@ -352,7 +349,7 @@ func (n *node) findRoute(ctx *Context, method methodType, path string) (*node, H
 		}
 	}
 
-	return nil, mws
+	return nil
 }
 
 func (n *node) findPattern(pattern string) bool {

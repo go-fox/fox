@@ -4,7 +4,7 @@ go 1.22.1
 
 require (
 	github.com/go-fox/fox v0.0.0-20240929082546-f42326648f68
-	github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e
+	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f
 	google.golang.org/protobuf v1.34.2
 )
 
@@ -16,6 +16,7 @@ require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/bytedance/go-tagexpr/v2 v2.9.11 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/nyaruka/phonenumbers v1.0.55 // indirect

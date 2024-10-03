@@ -10,7 +10,7 @@ require (
 	github.com/fasthttp/websocket v1.5.10
 	github.com/fatih/color v1.17.0
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e
+	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f
 	github.com/google/uuid v1.6.0
 	github.com/panjf2000/ants/v2 v2.10.0
 	github.com/valyala/fasthttp v1.55.0
