@@ -11,16 +11,14 @@ import (
 func (f *File) Save(filename string) (string, error) {
 	ext := filepath.Ext(filename)
 	if len(ext) == 0 {
-		filename = filepath.Join(filename, f.Name)
+		filename = filepath.Join(filename, uuid.New().String()+filepath.Ext(f.Name))
 	}
-	newFilename := uuid.New().String() + ext
 	path := filepath.Dir(filename)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {
 			return "", err
 		}
 	}
-	filename = filepath.Join(path, newFilename)
 	file, err := os.Create(filename)
 	if err != nil {
 		return "", err
