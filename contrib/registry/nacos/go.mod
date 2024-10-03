@@ -1,7 +1,7 @@
 module github.com/go-fox/contrilb/registry/nacos
 
 require (
-	github.com/go-fox/fox v0.0.0-20240929082546-f42326648f68
+	github.com/go-fox/fox v0.0.0-20241003170450-3b54d6c8dfe2
 	github.com/nacos-group/nacos-sdk-go v1.1.4
 )
 
@@ -10,7 +10,7 @@ require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
-	github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e // indirect
+	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

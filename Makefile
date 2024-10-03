@@ -60,6 +60,4 @@ mod-fox:
 	@echo "go mod fox ${VERSION_GIT_COMMIT} done"
 
 .PHONY: mod
-mod:
-	make mod-fox;
-	make mod-tidy;
+mod: mod-fox mod-tidy

@@ -13,8 +13,8 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/go-errors/errors v1.0.1/go.mod h1:f4zRHt4oKfwPJE5k8C9vpYG+aDHdBFUsgrm6/TyX73Q=
 github.com/go-errors/errors v1.5.1 h1:ZwEMSLRCapFLflTpT7NKaAc7ukJ8ZPEjzlxt8rPN8bk=
 github.com/go-errors/errors v1.5.1/go.mod h1:sIVyrIiJhuEF+Pj9Ebtd6P/rEYROXFi3BopGUQ5a5Og=
-github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e h1:qAoClb5Wx+B5Km4jpEx5mXowiyWn9/mK2/Rb5lJhOJc=
-github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e/go.mod h1:QPZh4tuVARsIf1lmioqHu18l5PtaJr7aj7FvRD4/GfU=
+github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f h1:eb+uZrgTVcE8o0S/X3sULKo8lw+c4d8vevuYjYEJ+8g=
+github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f/go.mod h1:QPZh4tuVARsIf1lmioqHu18l5PtaJr7aj7FvRD4/GfU=
 github.com/goji/httpauth v0.0.0-20160601135302-2da839ab0f4d/go.mod h1:nnjvkQ9ptGaCkuDUx6wNykzzlUixGxvkme+H/lnzb+A=
 github.com/golang/mock v1.3.1 h1:qGJ6qTW+x6xX/my+8YUVl4WNpX9B7+/l2tRsHGZ7f2s=
 github.com/golang/mock v1.3.1/go.mod h1:sBzyDLLjw3U8JLTeZvSv8jJB+tU5PVekmnlKIyFUx0Y=

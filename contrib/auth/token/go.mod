@@ -2,8 +2,8 @@ module github.com/go-fox/fox/contrib/auth/token
 
 require (
 	github.com/duke-git/lancet/v2 v2.3.2
-	github.com/go-fox/fox v0.0.0-20240929082546-f42326648f68
-	github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e
+	github.com/go-fox/fox v0.0.0-20241003170450-3b54d6c8dfe2
+	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f
 	github.com/google/uuid v1.6.0
 )
 
