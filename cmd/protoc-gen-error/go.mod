@@ -11,7 +11,7 @@ require (
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
-	github.com/go-fox/sugar v0.0.0-20240726072231-c5b19210270e // indirect
+	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
