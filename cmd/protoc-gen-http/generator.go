@@ -217,10 +217,15 @@ func (g *Generator) buildMethodDesc(m *protogen.Method, method, path string) *me
 	return &methodDesc{
 		Upload:       len(uploadFields) > 0,
 		UploadFields: uploadFields,
-		FileQualifiedGoIdent: g.writer.QualifiedGoIdent(protogen.GoIdent{
-			GoName:       "File",
-			GoImportPath: "github.com/go-fox/fox/api/annotations",
-		}),
+		FileQualifiedGoIdent: func() string {
+			if len(uploadFields) > 0 {
+				return g.writer.QualifiedGoIdent(protogen.GoIdent{
+					GoName:       "File",
+					GoImportPath: "github.com/go-fox/fox/api/annotations",
+				})
+			}
+			return ""
+		}(),
 		Name:         m.GoName,
 		OriginalName: string(m.Desc.Name()),
 		Num:          methodSets[m.GoName],
