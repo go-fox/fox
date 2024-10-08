@@ -43,8 +43,8 @@ type Config struct {
 	DB int `json:"db"`
 	// Common options.
 
-	Dialer    func(ctx context.Context, network, addr string) (net.Conn, error)
-	OnConnect func(ctx context.Context, cn *redis.Conn) error
+	Dialer    func(ctx context.Context, network, addr string) (net.Conn, error) `json:"-"`
+	OnConnect func(ctx context.Context, cn *redis.Conn) error                   `json:"-"`
 
 	Protocol         int    `json:"protocol"`
 	Username         string `json:"username"`
@@ -73,9 +73,9 @@ type Config struct {
 	ConnMaxLifetime config.Duration `json:"conn_max_lifetime"`
 
 	// TLS config
-	TLSConfig *tls.Config
-	CertFile  string `json:"cert_file"`
-	KeyFile   string `json:"key_file"`
+	TLSConfig *tls.Config `json:"-"`
+	CertFile  string      `json:"cert_file"`
+	KeyFile   string      `json:"key_file"`
 
 	// Only cluster clients.
 
