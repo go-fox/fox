@@ -9,7 +9,4 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 )
 
-replace (
-	github.com/go-fox/fox => ../../
-	google.golang.org/protobuf => github.com/go-fox/protobuf-go v0.0.0-20250210141321-83ceb72da1b5
-)
+replace google.golang.org/protobuf => github.com/go-fox/protobuf-go v0.0.0-20250210141321-83ceb72da1b5
