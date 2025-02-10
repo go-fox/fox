@@ -1,5 +1,3 @@
-github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826 h1:FZPYUMJpVPS5XXCTA2zZC/tGhxWSbZCK44mss1+CsfU=
-github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826/go.mod h1:QCExypr1akMft89YymL3GMY6ckAkG/d0PKsHAxT3V5M=
 github.com/go-fox/protobuf-go v0.0.0-20250210141321-83ceb72da1b5 h1:zlVHhi2oGVr+3+ZrruP7qB4J8aXJsOrn1QdrzcMR7zA=
 github.com/go-fox/protobuf-go v0.0.0-20250210141321-83ceb72da1b5/go.mod h1:r7yxHh76H8mXJfif3L6R/6d1TuKxE6EbVNIcnomgTsU=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
