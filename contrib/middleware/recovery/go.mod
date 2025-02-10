@@ -1,6 +1,6 @@
 module github.com/go-fox/fox/contrib/middleware/recovery
 
-require github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826
+require github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809
 
 require (
 	golang.org/x/sys v0.30.0 // indirect

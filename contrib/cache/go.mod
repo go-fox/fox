@@ -3,7 +3,7 @@ module github.com/go-fox/fox/contrib/cache
 go 1.22.1
 
 require (
-	github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826
+	github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809
 	github.com/go-fox/fox/contrib/clients/redis v0.0.0-00010101000000-000000000000
 	github.com/redis/go-redis/v9 v9.7.0
 )

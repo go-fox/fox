@@ -1,9 +1,9 @@
-module github.com/go-fox/cmd/protoc-gen-error
+module github.com/go-fox/fox/cmd/protoc-gen-error
 
 go 1.22.1
 
 require (
-	github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826
+	github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809
 	golang.org/x/text v0.22.0
 	google.golang.org/protobuf v1.36.5
 )
@@ -21,5 +21,3 @@ require (
 	google.golang.org/grpc v1.70.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/go-fox/fox => ../../

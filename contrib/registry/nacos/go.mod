@@ -1,7 +1,7 @@
 module github.com/go-fox/contrilb/registry/nacos
 
 require (
-	github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826
+	github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809
 	github.com/nacos-group/nacos-sdk-go v1.1.5
 )
 

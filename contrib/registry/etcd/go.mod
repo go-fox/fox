@@ -1,7 +1,7 @@
 module github.com/go-fox/contrilb/registry/etcd
 
 require (
-	github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826
+	github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809
 	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f
 	go.etcd.io/etcd/client/v3 v3.5.18
 	google.golang.org/grpc v1.70.0
