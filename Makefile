@@ -54,6 +54,11 @@ mod-tidy:
 	@for dir in ${MOD_PATHS}; do cd $$dir && go mod tidy ||exit; done
 	@echo "go mod tidy done"
 
+.PHONY: mod-update
+mod-update:
+	@for dir in ${MOD_PATHS}; do cd $$dir && go get -u && go mod tidy ||exit; done
+	@echo "go mod update done"
+
 .PHONY: mod-fox
 mod-fox:
 	@for dir in ${FOX_UPDATE_PATHS}; do cd $$dir && go get github.com/go-fox/fox@${VERSION_GIT_COMMIT}  ||exit; done
