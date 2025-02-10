@@ -13,6 +13,8 @@ github.com/bytedance/go-tagexpr/v2 v2.9.11/go.mod h1:UAyKh4ZRLBPGsyTRFZoPqTni1Tl
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826 h1:FZPYUMJpVPS5XXCTA2zZC/tGhxWSbZCK44mss1+CsfU=
+github.com/go-fox/fox v0.0.0-20250210143009-df3a88f5f826/go.mod h1:QCExypr1akMft89YymL3GMY6ckAkG/d0PKsHAxT3V5M=
 github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f h1:eb+uZrgTVcE8o0S/X3sULKo8lw+c4d8vevuYjYEJ+8g=
 github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f/go.mod h1:QPZh4tuVARsIf1lmioqHu18l5PtaJr7aj7FvRD4/GfU=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
