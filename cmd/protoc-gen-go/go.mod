@@ -1,6 +1,6 @@
 module github.com/go-fox/fox/cmd/protoc-gen-go
 
-go 1.22.1
+go 1.23.6
 
 require google.golang.org/protobuf v1.36.5
 
