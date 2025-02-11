@@ -1,10 +1,8 @@
-github.com/go-fox/fox v0.0.0-20250211103327-9752fa043e79 h1:aYTSNWOdn11Diat8vanBiQiuGKmYjY9BGQiNFNySXrw=
-github.com/go-fox/fox v0.0.0-20250211103327-9752fa043e79/go.mod h1:QCExypr1akMft89YymL3GMY6ckAkG/d0PKsHAxT3V5M=
 github.com/go-fox/protobuf-go v0.0.0-20250211133054-7cb3c3ab6b17 h1:Uex9TftrwTmxwfTqJ1k4v84p15Uu702vLNMTeeAmUF0=
 github.com/go-fox/protobuf-go v0.0.0-20250211133054-7cb3c3ab6b17/go.mod h1:hF7VCu6P0lCqezw3h/5Eoo3/ecZJacpegnFeqz4hBeQ=
+github.com/go-fox/protobuf-go v0.0.0-20250211141352-16bd050b13dc h1:SLfzPVuvzE8kwhWq8QXRWLh+fbw0zgALA5lHLecwXyc=
+github.com/go-fox/protobuf-go v0.0.0-20250211141352-16bd050b13dc/go.mod h1:2mekhKYk57ZH+2OYLoU47xKqLqjckGjy3XFrRFbDgfQ=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-google.golang.org/protobuf v1.36.5 h1:tPhr+woSbjfYvY6/GPufUoYizxw1cF/yFoxJ2fmpwlM=
-google.golang.org/protobuf v1.36.5/go.mod h1:9fA7Ob0pmnwhb644+1+CVWFRbNajQ6iRojtC/QF5bRE=
