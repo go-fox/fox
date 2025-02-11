@@ -10,5 +10,3 @@ require (
 )
 
 replace google.golang.org/protobuf => github.com/go-fox/protobuf-go v0.0.0-20250211095727-82b8e43adfde
-
-replace github.com/go-fox/fox => ../../
