@@ -4,9 +4,4 @@ go 1.22.1
 
 require google.golang.org/protobuf v1.36.5
 
-require (
-	github.com/go-fox/fox v0.0.0-20250210154025-6ca251b7a060 // indirect
-	github.com/google/uuid v1.6.0 // indirect
-)
-
-replace google.golang.org/protobuf => github.com/go-fox/protobuf-go v0.0.0-20250211095727-82b8e43adfde
+replace google.golang.org/protobuf => github.com/go-fox/protobuf-go v0.0.0-20250211130641-125cb2be2f0e
