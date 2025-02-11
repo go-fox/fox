@@ -30,7 +30,7 @@ import (
 	"os"
 	"path/filepath"
 
-	gengo "github.com/go-fox/protobuf-go/cmd/protoc-gen-go/internal_gengo"
+	gengo "google.golang.org/protobuf/cmd/protoc-gen-go/internal_gengo"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
