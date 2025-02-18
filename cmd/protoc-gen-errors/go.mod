@@ -1,4 +1,4 @@
-module github.com/go-fox/fox/cmd/protoc-gen-error
+module github.com/go-fox/fox/cmd/protoc-gen-errors
 
 go 1.22.1
 
