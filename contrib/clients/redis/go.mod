@@ -1,6 +1,6 @@
 module github.com/go-fox/fox/contrib/clients/redis
 
-go 1.22.1
+go 1.23.6
 
 require (
 	github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809

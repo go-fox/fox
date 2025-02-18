@@ -1,6 +1,6 @@
 module github.com/go-fox/fox
 
-go 1.22.1
+go 1.23.6
 
 require (
 	dario.cat/mergo v1.0.1
@@ -24,6 +24,7 @@ require (
 require (
 	github.com/andeya/ameda v1.5.3 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/go-fox/go-utils v0.0.0-20250217133554-771d91ba57e9 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/kr/text v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect

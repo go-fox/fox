@@ -47,6 +47,7 @@ revive:
 proto:
 	protoc --proto_path=./third_party --go_out=paths=source_relative:./ --go-grpc_out=paths=source_relative:./ api/annotations/annotations.proto
 	protoc --proto_path=./third_party --go_out=paths=source_relative:./ --go-grpc_out=paths=source_relative:./ api/protocol/protocol.proto
+	protoc --proto_path=./third_party --go_out=paths=source_relative:./ --go-grpc_out=paths=source_relative:./ api/pagination/pagination.proto
 	protoc --proto_path=./ --go_out=paths=source_relative:./ --go-grpc_out=paths=source_relative:./ errors/errors.proto
 
 .PHONY: mod-tidy

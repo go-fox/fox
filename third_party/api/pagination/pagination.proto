@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package protocol;
+
+option go_package = "github.com/go-fox/fox/api/pagination;pagination";
+import "api/annotations/annotations.proto";
+
+// PagingRequest 分页请求
+message PagingRequest{
+  int32 page = 1[(fox.api.query)="page"]; // 当前页码
+  int32 size = 2[(fox.api.query)="page"]; // 每页数量
+  string query = 3[(fox.api.query)="query"]; // 查询条件，解析为https://github.com/go-fox/go-utils/blob/main/pagination/condition.go的Where结构体
+  string order_by=4[(fox.api.query)="order_by"]; // 排序字段
+  bool no_paging = 5[(fox.api.query)="no_paging"]; // 是否不分页，如果为true则page和size无效
+  string fields = 6[(fox.api.query)="fields"]; // 要查询的字段，如果为空则查询全部字段
+}
