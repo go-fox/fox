@@ -1,9 +1,9 @@
 module github.com/go-fox/fox/cmd/protoc-gen-fox-http
 
-go 1.22.1
+go 1.23.6
 
 require (
-	github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809
+	github.com/go-fox/fox v0.0.0-20250218121244-0cfa4ebe507a
 	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f
 	google.golang.org/protobuf v1.36.5
 )
@@ -22,11 +22,11 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.58.0 // indirect
-	golang.org/x/exp v0.0.0-20250207012021-f9890c6ad9f3 // indirect
+	github.com/valyala/fasthttp v1.59.0 // indirect
+	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b // indirect
 	google.golang.org/grpc v1.70.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
