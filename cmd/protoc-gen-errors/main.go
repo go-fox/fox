@@ -26,6 +26,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
@@ -36,9 +37,10 @@ var showVersion = flag.Bool("version", false, "print the version and exit")
 func main() {
 	flag.Parse()
 	if *showVersion {
-		fmt.Printf("protoc-gen-go-errors %v\n", Version)
+		fmt.Printf("protoc-gen-errors %v\n", Version)
 		return
 	}
+	fmt.Fprintf(os.Stderr, "protoc-gen-errors %v\n", Version)
 	var flags flag.FlagSet
 	protogen.Options{
 		ParamFunc: flags.Set,
