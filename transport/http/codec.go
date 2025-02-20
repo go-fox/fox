@@ -25,12 +25,15 @@ package http
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 
 	"github.com/go-fox/fox/codec"
 	"github.com/go-fox/fox/codec/json"
 	"github.com/go-fox/fox/errors"
 	"github.com/go-fox/fox/internal/bytesconv"
 	"github.com/go-fox/fox/internal/httputil"
+	"github.com/go-fox/fox/transport/http/binding"
 )
 
 // Redirector URL redirector
@@ -40,6 +43,12 @@ type Redirector interface {
 
 // EncodeResponseFunc response handler
 type EncodeResponseFunc func(ctx *Context, v any) error
+
+// DecodeRequestFunc request decoder
+type DecodeRequestFunc func(req *Request, v any) error
+
+// DecodeRequestVarsFunc 解析路径参数
+type DecodeRequestVarsFunc func(ctx *Context, v any) error
 
 // EncodeErrorFunc is error handler
 type EncodeErrorFunc func(ctx *Context, err error) error
@@ -54,12 +63,12 @@ type DecodeResponseFunc = func(ctx context.Context, resp *Response, v any) error
 type DecodeErrorFunc func(ctx context.Context, res *Response) error
 
 // CodecForRequest get codec from request
-func CodecForRequest(r *Request, name string) codec.Codec {
+func CodecForRequest(r *Request, name string) (codec.Codec, bool) {
 	impl := codec.GetCodec(httputil.ContentSubtype(bytesconv.BytesToString(r.Header.Peek(name))))
 	if impl != nil {
-		return impl
+		return impl, true
 	}
-	return codec.GetCodec(json.Name)
+	return codec.GetCodec(json.Name), false
 }
 
 // CodecForResponse 根据响应信息获取解码器
@@ -80,7 +89,7 @@ func DefaultResponseHandler(ctx *Context, v any) error {
 		url, code := rd.Redirect()
 		return ctx.Redirect(code, bytesconv.StringToBytes(url))
 	}
-	c := CodecForRequest(ctx.Request(), "Accept")
+	c, _ := CodecForRequest(ctx.Request(), "Accept")
 	data, err := c.Marshal(v)
 	if err != nil {
 		return err
@@ -88,6 +97,56 @@ func DefaultResponseHandler(ctx *Context, v any) error {
 	ctx.Response().Header.Set("Content-Type", httputil.ContentType(c.Name()))
 	ctx.Send(data)
 	return nil
+}
+
+// DefaultDecodeRequestQuery default request decoder
+func DefaultDecodeRequestQuery(req *Request, v any) error {
+	var query url.Values
+	req.URI().QueryArgs().VisitAll(func(key, value []byte) {
+		query.Set(bytesconv.BytesToString(key), bytesconv.BytesToString(value))
+	})
+	return binding.BindQuery(query, v)
+}
+
+// DefaultDecodeRequestVars default request decoder
+func DefaultDecodeRequestVars(ctx *Context, v any) error {
+	var query = make(url.Values, len(ctx.urlParams.Keys()))
+	for _, key := range ctx.urlParams.keys {
+		val, b := ctx.urlParams.Get(key)
+		if b {
+			query.Set(key, val)
+		}
+	}
+	return binding.BindQuery(query, v)
+}
+
+// DefaultDecodeRequestBody default request decoder
+func DefaultDecodeRequestBody(req *Request, v any) error {
+	encoding, ok := CodecForRequest(req, HeaderContentType)
+	if !ok {
+		return errors.BadRequest("CODEC", fmt.Sprintf("unregister Content-Type: %s", bytesconv.BytesToString(req.Header.Peek(HeaderContentType))))
+	}
+	body := req.Body()
+	if len(body) == 0 {
+		return nil
+	}
+	if err := encoding.Unmarshal(body, v); err != nil {
+		return errors.BadRequest("CODEC", fmt.Sprintf("body unmarshal %s", err.Error()))
+	}
+	return nil
+}
+
+// DefaultDecodeRequestForm default request decoder
+func DefaultDecodeRequestForm(req *Context, v any) error {
+	form, err := req.MultipartForm()
+	if err != nil {
+		return err
+	}
+	var query url.Values
+	for s, strings := range form.Value {
+		query[s] = strings
+	}
+	return binding.BindForm(query, v)
 }
 
 // DefaultErrorHandler default error handler
@@ -111,7 +170,10 @@ func DefaultErrorHandler(c *Context, err error) error {
 
 // DefaultRequestEncoder default client request encoder
 func DefaultRequestEncoder(ctx context.Context, req *Request, in interface{}) ([]byte, error) {
-	encoding := CodecForRequest(req, HeaderContentType)
+	encoding, ok := CodecForRequest(req, HeaderContentType)
+	if !ok {
+		return nil, errors.BadRequest("CODEC", fmt.Sprintf("unregister Content-Type: %s", bytesconv.BytesToString(req.Header.Peek(HeaderContentType))))
+	}
 	body, err := encoding.Marshal(in)
 	if err != nil {
 		return nil, err

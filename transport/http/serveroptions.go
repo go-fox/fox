@@ -51,6 +51,9 @@ type ServerConfig struct {
 	tlsConf            *tls.Config
 	ene                EncodeErrorFunc
 	enc                EncodeResponseFunc
+	decQuery           DecodeRequestFunc
+	decVars            DecodeRequestVarsFunc
+	decBody            DecodeRequestFunc
 	middlewares        matcher.Matcher
 	logger             *slog.Logger
 }
@@ -64,6 +67,9 @@ func DefaultServerConfig() *ServerConfig {
 		middlewares: matcher.New(),
 		ene:         DefaultErrorHandler,
 		enc:         DefaultResponseHandler,
+		decQuery:    DefaultDecodeRequestQuery,
+		decVars:     DefaultDecodeRequestVars,
+		decBody:     DefaultDecodeRequestBody,
 		logger:      slog.Default().With(slog.String("mod", "transport.http.server")),
 	}
 }

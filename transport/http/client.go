@@ -100,75 +100,43 @@ func NewClientWithConfig(configs ...*ClientConfig) *Client {
 
 // Invoke ...
 func (c *Client) Invoke(ctx context.Context, method, path string, args interface{}, reply interface{}, opts ...CallOption) (err error) {
-	// 解码出request信息
-	marshalReq, err := defaultBinding.Marshal(path, args)
-	if err != nil {
-		return err
-	}
 	var (
 		contentType string
 		body        []byte
 	)
 	req := reqPool.Get()
-	defer reqPool.Put(req)
 	resp := respPool.Get()
-	defer respPool.Put(resp)
 	info := defaultCallInfo(path)
-	for _, opt := range opts {
-		if err := opt(info, before, req); err != nil {
+	for _, o := range opts {
+		if err = o(info, before, ctx); err != nil {
 			return err
 		}
 	}
-	// 处理路径参数
-	path = marshalReq.GetPath()
-	// 处理header
-	headerParams := marshalReq.GetHeader()
-	if len(headerParams) > 0 {
-		for key, values := range headerParams {
-			v := ""
-			if len(values) > 0 {
-				v = values[0]
-			}
-			req.Header.Set(key, v)
-		}
+	// 设置header信息
+	req.Header.Set("Content-Type", contentType)
+	// 设置user-agent
+	if c.config.UserAgent != "" {
+		req.Header.Set("User-Agent", c.config.UserAgent)
 	}
-
-	// 设置cookie
-	cookieParams := marshalReq.GetCookies()
-	if len(cookieParams) > 0 {
-		for _, cookie := range cookieParams {
-			req.Header.SetCookie(cookie.Name, cookie.Value)
-		}
-	}
-
-	// 处理query
-	queryParams := marshalReq.GetQuery()
-	if len(queryParams) > 0 {
-		if query := queryParams.Encode(); query != "" {
-			path = path + "?" + query
-		}
-	}
-	// 设置body
-	if marshalReq.HasBody() {
-		// 设置请求体类型
-		if contentType != "" {
-			req.Header.Set(HeaderContentType, info.contentType)
-		}
-		// 获取并设置body数据
-		body, err = c.config.encodeRequest(ctx, req, marshalReq.Body())
+	if args != nil {
+		body, err = c.config.encodeRequest(ctx, req, args)
 		if err != nil {
 			return err
 		}
+		contentType = info.contentType
 	}
+
 	// 设置url
 	url := fmt.Sprintf("%s://%s%s", c.target.Scheme, c.target.Authority, path)
 	req.SetRequestURI(url)
 	req.Header.SetMethod(method)
 	req.SetBody(body)
 	transport.NewClientContext(ctx, &Transport{
-		endpoint: c.config.Endpoint,
-		request:  req,
-		response: resp,
+		endpoint:     c.config.Endpoint,
+		request:      req,
+		response:     resp,
+		pathTemplate: info.pathTemplate,
+		operation:    info.operation,
 	})
 	return c.invoke(ctx, req, resp, args, reply, info, opts...)
 }

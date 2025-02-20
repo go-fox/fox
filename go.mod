@@ -10,7 +10,9 @@ require (
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
 	github.com/fsnotify/fsnotify v1.8.0
+	github.com/go-fox/go-utils v0.0.0-20250218065252-2ae6eb6029df
 	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f
+	github.com/go-playground/form/v4 v4.2.1
 	github.com/google/uuid v1.6.0
 	github.com/panjf2000/ants/v2 v2.11.1
 	github.com/valyala/fasthttp v1.58.0
@@ -22,9 +24,9 @@ require (
 )
 
 require (
+	entgo.io/ent v0.14.1 // indirect
 	github.com/andeya/ameda v1.5.3 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
-	github.com/go-fox/go-utils v0.0.0-20250218065252-2ae6eb6029df // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/kr/text v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect

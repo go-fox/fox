@@ -29,6 +29,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -46,6 +47,7 @@ import (
 	"github.com/go-fox/fox/internal/matcher"
 	"github.com/go-fox/fox/middleware"
 	"github.com/go-fox/fox/transport"
+	"github.com/go-fox/fox/transport/http/binding"
 )
 
 var ctxPool = spool.New[*Context](func() *Context {
@@ -156,9 +158,73 @@ func (ctx *Context) Params() *RouteParams {
 
 // ShouldBind binding struct
 func (ctx *Context) ShouldBind(out interface{}) error {
-	req := warpRequest(ctx.Request())
-	defer releaseBindRequest(req)
-	return defaultBinding.Unmarshal(out, req, ctx.urlParams)
+	if err := ctx.BindVars(out); err != nil {
+		return err
+	}
+	if err := ctx.BindQuery(out); err != nil {
+		return err
+	}
+	if err := ctx.BindForm(out); err != nil {
+		return err
+	}
+	return ctx.BindBody(out)
+}
+
+// BindVars binding vars
+func (ctx *Context) BindVars(v any) error {
+	return ctx.srv.Config().decVars(ctx, v)
+}
+
+// BindBody binding body
+func (ctx *Context) BindBody(v any) error {
+	return ctx.srv.Config().decBody(ctx.Request(), v)
+}
+
+// BindQuery binding query
+func (ctx *Context) BindQuery(v any) error {
+	return ctx.srv.Config().decQuery(ctx.Request(), v)
+}
+
+// BindForm binding form
+func (ctx *Context) BindForm(v any) error {
+	form, err := ctx.parseForm()
+	if err != nil {
+		return err
+	}
+	return binding.BindForm(form, v)
+}
+
+func (ctx *Context) parseForm() (url.Values, error) {
+	form := make(url.Values)
+
+	// 解析 URL 查询参数
+	ctx.fastCtx.QueryArgs().VisitAll(func(key, value []byte) {
+		form.Add(string(key), string(value))
+	})
+
+	// 解析 POST 表单数据
+	if ctx.fastCtx.IsPost() {
+		contentType := string(ctx.fastCtx.Request.Header.ContentType())
+		if strings.HasPrefix(contentType, "application/x-www-form-urlencoded") {
+			postArgs := ctx.fastCtx.PostArgs()
+			postArgs.VisitAll(func(key, value []byte) {
+				form.Add(string(key), string(value))
+			})
+		} else if strings.HasPrefix(contentType, "multipart/form-data") {
+			// 处理 multipart/form-data
+			formData, err := ctx.MultipartForm()
+			if err != nil {
+				return nil, err
+			}
+			for key, values := range formData.Value {
+				for _, value := range values {
+					form.Add(key, value)
+				}
+			}
+		}
+	}
+
+	return form, nil
 }
 
 // MultipartForm get all multipart.Form
