@@ -22,6 +22,53 @@ func Register{{.ServiceType}}HTTPServer(s *http.Server, srv {{.ServiceType}}HTTP
 }
 
 {{range .Methods}}
+{{if .Upload }}
+{{$FileQualifiedGoIdent:=.FileQualifiedGoIdent}}
+{{$FileQualifiedGoIdent:=.FileQualifiedGoIdent}}
+func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) func(ctx *http.Context) error {
+    return func(ctx *http.Context) error {
+        var in {{.Request}}
+        form, err := ctx.MultipartForm()
+        if err != nil {
+            return err
+        }{{ range .UploadFields }}
+        if fileheaders, ok := form.File["{{.TagName}}"]; ok {
+            for _, fileheader := range fileheaders {
+                f, err := fileheader.Open()
+                if err != nil {
+                    return err
+                }
+                filebuf := make([]byte, fileheader.Size)
+                _, err = f.Read(filebuf)
+                if err != nil {
+                    return err
+                }{{ if .IsList }}
+                in.{{.Name}} = append(in.{{.Name}}, &{{$FileQualifiedGoIdent}}{
+                    Name: fileheader.Filename,
+                    Size: fileheader.Size,
+                    Content:filebuf,
+                })
+                {{else}}
+                in.{{.Name}} = &{{$FileQualifiedGoIdent}}{
+                    Name: fileheader.Filename,
+                    Size: fileheader.Size,
+                    Content:filebuf,
+                }{{ end }}
+            }
+        }{{ end }}
+        http.SetOperation(ctx,Operation{{$svrType}}{{.OriginalName}})
+        h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+            return srv.{{.Name}}(ctx, req.(*{{.Request}}))
+        })
+        out, err := h(ctx, &in)
+        if err != nil {
+            return err
+        }
+        reply := out.(*{{.Reply}})
+        return ctx.Result(200, reply{{.ResponseBody}})
+    }
+}
+{{else}}
 func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) func(ctx *http.Context) error {
 	return func(ctx *http.Context) error {
 		var in {{.Request}}
@@ -51,6 +98,7 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
 	}
 }
 {{end}}
+{{end}}
 
 type {{.ServiceType}}HTTPClient interface {
 {{- range .MethodSets}}
@@ -69,7 +117,8 @@ func New{{.ServiceType}}HTTPClient (client *http.Client) {{.ServiceType}}HTTPCli
 {{range .MethodSets}}
 func (c *{{$svrType}}HTTPClientImpl) {{.Name}}(ctx context.Context, in *{{.Request}}, opts ...http.CallOption) (*{{.Reply}}, error) {
 	var out {{.Reply}}
-	path := "{{.Path}}"
+	pattern := "{{.Path}}"
+    path := binding.EncodeURL(pattern, in, {{not .HasBody}})
 	opts = append(opts, http.WithCallOperation(Operation{{$svrType}}{{.OriginalName}}))
     opts = append(opts, http.WithCallPathTemplate(path))
 	{{if .HasBody -}}

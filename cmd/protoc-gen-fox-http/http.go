@@ -173,10 +173,35 @@ func buildHTTPRule(g *protogen.GeneratedFile, service *protogen.Service, m *prot
 	return md
 }
 
+func uploadFiled(m *protogen.Method) (ret []UploadFields) {
+	fields := m.Input.Desc.Fields()
+	for i := range fields.Len() {
+		if fields.Get(i).Message() != nil && fields.Get(i).Message().FullName() == "fox.api.File" {
+			tagName := string(fields.Get(i).Name())
+			ret = append(ret, UploadFields{
+				Name:    camelCase(string(fields.Get(i).Name())),
+				TagName: tagName,
+				IsList:  fields.Get(i).IsList(),
+			})
+		}
+
+	}
+	return
+}
+
 func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path string) *methodDesc {
 	defer func() { methodSets[m.GoName]++ }()
 
 	vars := buildPathVars(path)
+
+	uploadFields := uploadFiled(m)
+	fileIdent := ""
+	if len(uploadFields) > 0 {
+		fileIdent = g.QualifiedGoIdent(protogen.GoIdent{
+			GoName:       "File",
+			GoImportPath: "github.com/go-fox/fox/api/annotations",
+		})
+	}
 
 	for v, s := range vars {
 		fields := m.Input.Desc.Fields()
@@ -210,15 +235,18 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 		comment = "// " + m.GoName + strings.TrimPrefix(strings.TrimSuffix(comment, "\n"), "//")
 	}
 	return &methodDesc{
-		Name:         m.GoName,
-		OriginalName: string(m.Desc.Name()),
-		Num:          methodSets[m.GoName],
-		Request:      g.QualifiedGoIdent(m.Input.GoIdent),
-		Reply:        g.QualifiedGoIdent(m.Output.GoIdent),
-		Comment:      comment,
-		Path:         path,
-		Method:       method,
-		HasVars:      len(vars) > 0,
+		Upload:               len(uploadFields) > 0,
+		UploadFields:         uploadFields,
+		FileQualifiedGoIdent: fileIdent,
+		Name:                 m.GoName,
+		OriginalName:         string(m.Desc.Name()),
+		Num:                  methodSets[m.GoName],
+		Request:              g.QualifiedGoIdent(m.Input.GoIdent),
+		Reply:                g.QualifiedGoIdent(m.Output.GoIdent),
+		Comment:              comment,
+		Path:                 path,
+		Method:               method,
+		HasVars:              len(vars) > 0,
 	}
 }
 
