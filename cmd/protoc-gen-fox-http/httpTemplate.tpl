@@ -14,7 +14,7 @@ type {{.ServiceType}}HTTPServer interface {
 {{- end}}
 }
 
-func Register{{.ServiceType}}HTTPServer(s *http.Server, srv {{.ServiceType}}HTTPServer) {
+func Register{{.ServiceType}}HTTPServer(s http.Router, srv {{.ServiceType}}HTTPServer) {
 	r := s.Group("/")
 	{{- range .Methods}}
 	r.{{.Method}}("{{.Path}}", _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv))
@@ -73,7 +73,7 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
 	return func(ctx *http.Context) error {
 		var in {{.Request}}
 		{{- if .HasBody}}
-		if err := ctx.Bind(&in{{.Body}}); err != nil {
+		if err := ctx.BindBody(&in{{.Body}}); err != nil {
 			return err
 		}
 		{{- end}}

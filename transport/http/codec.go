@@ -101,7 +101,8 @@ func DefaultResponseHandler(ctx *Context, v any) error {
 
 // DefaultDecodeRequestQuery default request decoder
 func DefaultDecodeRequestQuery(req *Request, v any) error {
-	var query url.Values
+	args := req.URI().QueryArgs()
+	var query = make(url.Values, args.Len())
 	req.URI().QueryArgs().VisitAll(func(key, value []byte) {
 		query.Set(bytesconv.BytesToString(key), bytesconv.BytesToString(value))
 	})
