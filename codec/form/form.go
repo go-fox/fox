@@ -5,8 +5,9 @@ import (
 	"reflect"
 
 	"github.com/go-playground/form/v4"
-	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/go-fox/fox/codec"
 )
 
 const (
@@ -28,15 +29,17 @@ var tagName = "json"
 func init() {
 	decoder.SetTagName(tagName)
 	encoder.SetTagName(tagName)
-	encoding.RegisterCodec(codec{encoder: encoder, decoder: decoder})
+	codec.RegisterCodec(Codec{encoder: encoder, decoder: decoder})
 }
 
-type codec struct {
+// Codec is form codec
+type Codec struct {
 	encoder *form.Encoder
 	decoder *form.Decoder
 }
 
-func (c codec) Marshal(v interface{}) ([]byte, error) {
+// Marshal form data
+func (c Codec) Marshal(v interface{}) ([]byte, error) {
 	var vs url.Values
 	var err error
 	if m, ok := v.(proto.Message); ok {
@@ -58,7 +61,8 @@ func (c codec) Marshal(v interface{}) ([]byte, error) {
 	return []byte(vs.Encode()), nil
 }
 
-func (c codec) Unmarshal(data []byte, v interface{}) error {
+// Unmarshal form data
+func (c Codec) Unmarshal(data []byte, v interface{}) error {
 	vs, err := url.ParseQuery(string(data))
 	if err != nil {
 		return err
@@ -81,6 +85,7 @@ func (c codec) Unmarshal(data []byte, v interface{}) error {
 	return c.decoder.Decode(v, vs)
 }
 
-func (codec) Name() string {
+// Name is form codec name
+func (Codec) Name() string {
 	return Name
 }
