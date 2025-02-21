@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package fox.api.protocol;
+package fox.protocol;
 
 option go_package = "github.com/go-fox/fox/api/gen/go/protocol;protocol";
 import "google/rpc/status.proto";

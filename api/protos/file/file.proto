@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package fox.api.file;
+package fox.file;
 
 option go_package = "github.com/go-fox/fox/api/gen/go/file;file";
 
