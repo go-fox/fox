@@ -4,8 +4,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fatih/color v1.18.0 h1:S8gINlzdQ840/4pfAwic/ZE0djQEH3wM94VfqLTZcOM=
 github.com/fatih/color v1.18.0/go.mod h1:4FelSpRwEGDpQ12mAdzqdOukCy4u8WUtOY6lkT/6HfU=
-github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809 h1:jZlXGb7IEn0pa8rNK4mV5sPn5pEU2vFzMRS0xikqbWU=
-github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809/go.mod h1:QCExypr1akMft89YymL3GMY6ckAkG/d0PKsHAxT3V5M=
+github.com/go-fox/fox v0.0.0-20250221132049-783b83492dac h1:Jj4lW9p+PUg7JXR3nF2cthQOc5toeSLGmz58iSALk9M=
+github.com/go-fox/fox v0.0.0-20250221132049-783b83492dac/go.mod h1:2hjx2UgSlajt1y3R7BXS/qqeN02y6KVUAt8dXi3PG/I=
 github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f h1:eb+uZrgTVcE8o0S/X3sULKo8lw+c4d8vevuYjYEJ+8g=
 github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f/go.mod h1:QPZh4tuVARsIf1lmioqHu18l5PtaJr7aj7FvRD4/GfU=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=

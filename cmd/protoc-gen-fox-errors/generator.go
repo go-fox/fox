@@ -33,7 +33,7 @@ import (
 	"golang.org/x/text/language"
 	"google.golang.org/protobuf/compiler/protogen"
 
-	"github.com/go-fox/fox/errors"
+	"github.com/go-fox/fox/api/gen/go/status"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -85,7 +85,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genErrorsReason(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, enum *protogen.Enum) bool {
-	defaultCode := proto.GetExtension(enum.Desc.Options(), errors.E_DefaultCode)
+	defaultCode := proto.GetExtension(enum.Desc.Options(), status.E_DefaultCode)
 	code := 0
 	if ok := defaultCode.(int32); ok != 0 {
 		code = int(ok)
@@ -96,11 +96,11 @@ func genErrorsReason(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	var ew errorWrapper
 	for _, v := range enum.Values {
 		enumCode := code
-		eCode := proto.GetExtension(v.Desc.Options(), errors.E_Code)
+		eCode := proto.GetExtension(v.Desc.Options(), status.E_Code)
 		if ok := eCode.(int32); ok != 0 {
 			enumCode = int(ok)
 		}
-		// If the current enumeration does not contain 'errors.code'
+		// If the current enumeration does not contain 'status.code'
 		// or the code value exceeds the range, the current enum will be skipped
 		if enumCode > 600 || enumCode < 0 {
 			panic(fmt.Sprintf("Enum '%s' range must be greater than 0 and less than or equal to 600", string(v.Desc.Name())))

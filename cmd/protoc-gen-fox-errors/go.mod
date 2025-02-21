@@ -1,9 +1,9 @@
 module github.com/go-fox/fox/cmd/protoc-gen-fox-errors
 
-go 1.22.1
+go 1.23.6
 
 require (
-	github.com/go-fox/fox v0.0.0-20250210153006-90b39c7c7809
+	github.com/go-fox/fox v0.0.0-20250221132049-783b83492dac
 	golang.org/x/text v0.22.0
 	google.golang.org/protobuf v1.36.5
 )
