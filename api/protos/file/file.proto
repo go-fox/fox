@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package fox.api.file;
+
+option go_package = "github.com/go-fox/fox/api/gen/go/file;file";
+
+message FoxFile{
+  string name = 1;
+  int64 size = 2;
+  bytes content = 3;
+}

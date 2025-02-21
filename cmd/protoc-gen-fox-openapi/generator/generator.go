@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -660,6 +661,7 @@ func (g *OpenAPIv3Generator) buildOperationV3(
 				}
 			}
 		}
+		fmt.Fprintf(os.Stderr, "request body is %v\n", g.reflect.requiredSchemas)
 		op.RequestBody = &v3.RequestBodyOrReference{
 			Oneof: &v3.RequestBodyOrReference_RequestBody{
 				RequestBody: &v3.RequestBody{
@@ -786,6 +788,22 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 
 // addSchemaForMessageToDocumentV3 adds the schema to the document if required
 func (g *OpenAPIv3Generator) addSchemaToDocumentV3(d *v3.Document, schema *v3.NamedSchemaOrReference) {
+	for _, property := range schema.Value.GetSchema().Properties.AdditionalProperties {
+		if property.Value.GetReference() != nil {
+			if property.Value.GetReference().GetXRef() == "#/components/schemas/File" {
+				property.Value = &v3.SchemaOrReference{
+					Oneof: &v3.SchemaOrReference_Schema{
+						Schema: &v3.Schema{
+							Type:        "string",
+							Description: property.Value.GetReference().Description,
+							Format:      "binary",
+						},
+					},
+				}
+			}
+		}
+	}
+
 	if contains(g.generatedSchemas, schema.Name) {
 		return
 	}

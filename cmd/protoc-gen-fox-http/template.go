@@ -20,9 +20,10 @@ type serviceDesc struct {
 
 // UploadFields 上传字段
 type UploadFields struct {
-	Name    string // 上传的名称
-	TagName string // 读取的名称
-	IsList  bool
+	GoName   string // 上传字段的 Go 名称
+	JSONName string // 上传字段的 JSON 名称
+	Name     string // 上传字段的名称
+	IsList   bool
 }
 
 type methodDesc struct {

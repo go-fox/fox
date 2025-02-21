@@ -9,6 +9,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	foxStatus "github.com/go-fox/fox/api/gen/go/status"
+
 	"github.com/go-fox/fox/internal/bytesconv"
 )
 
@@ -24,7 +26,7 @@ const (
 
 // Error 错误定义
 type Error struct {
-	Status
+	foxStatus.Status
 	cause error
 	stack *stack
 }
@@ -87,7 +89,7 @@ func (e *Error) GRPCStatus() *status.Status {
 // New create an error
 func New(code int, reason, message string) *Error {
 	return &Error{
-		Status: Status{
+		Status: foxStatus.Status{
 			Code:    int32(code),
 			Message: message,
 			Reason:  reason,
@@ -127,7 +129,7 @@ func Clone(err *Error) *Error {
 	}
 	return &Error{
 		cause: err.cause,
-		Status: Status{
+		Status: foxStatus.Status{
 			Code:     err.Code,
 			Reason:   err.Reason,
 			Message:  err.Message,

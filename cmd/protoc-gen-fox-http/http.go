@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	openapi_v3 "github.com/google/gnostic-models/openapiv3"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
@@ -174,17 +175,19 @@ func buildHTTPRule(g *protogen.GeneratedFile, service *protogen.Service, m *prot
 }
 
 func uploadFiled(m *protogen.Method) (ret []UploadFields) {
-	fields := m.Input.Desc.Fields()
-	for i := range fields.Len() {
-		if fields.Get(i).Message() != nil && fields.Get(i).Message().FullName() == "fox.api.File" {
-			tagName := string(fields.Get(i).Name())
-			ret = append(ret, UploadFields{
-				Name:    camelCase(string(fields.Get(i).Name())),
-				TagName: tagName,
-				IsList:  fields.Get(i).IsList(),
-			})
+	fields := m.Input.Fields
+	for _, field := range fields {
+		extension, ok := proto.GetExtension(field.Desc.Options(), openapi_v3.E_Property).(*openapi_v3.Schema)
+		if ok && extension != nil {
+			if extension.Format == "binary" {
+				ret = append(ret, UploadFields{
+					GoName:   field.GoName,
+					Name:     string(field.Desc.Name()),
+					JSONName: field.Desc.JSONName(),
+					IsList:   field.Desc.IsList(), // 是否是多个文件
+				})
+			}
 		}
-
 	}
 	return
 }
