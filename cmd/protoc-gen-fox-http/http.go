@@ -179,7 +179,7 @@ func uploadFiled(m *protogen.Method) (ret []UploadFields) {
 	for _, field := range fields {
 		extension, ok := proto.GetExtension(field.Desc.Options(), openapi_v3.E_Property).(*openapi_v3.Schema)
 		if ok && extension != nil {
-			if extension.Format == "binary" {
+			if extension.Format == "binary" && field.Message.Desc.FullName() == "fox.file.FoxFile" {
 				ret = append(ret, UploadFields{
 					GoName:   field.GoName,
 					Name:     string(field.Desc.Name()),
@@ -201,8 +201,8 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 	fileIdent := ""
 	if len(uploadFields) > 0 {
 		fileIdent = g.QualifiedGoIdent(protogen.GoIdent{
-			GoName:       "File",
-			GoImportPath: "github.com/go-fox/fox/api/annotations",
+			GoName:       "FoxFile",
+			GoImportPath: "github.com/go-fox/fox/api/gen/go/file",
 		})
 	}
 

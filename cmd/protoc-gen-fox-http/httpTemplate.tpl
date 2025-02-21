@@ -32,7 +32,7 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
         if err != nil {
             return err
         }{{ range .UploadFields }}
-        if fileheaders, ok := form.File["{{.TagName}}"]; ok {
+        if fileheaders, ok := form.File["{{.JSONName}}"]; ok {
             for _, fileheader := range fileheaders {
                 f, err := fileheader.Open()
                 if err != nil {
@@ -43,13 +43,13 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
                 if err != nil {
                     return err
                 }{{ if .IsList }}
-                in.{{.Name}} = append(in.{{.Name}}, &{{$FileQualifiedGoIdent}}{
+                in.{{.GoName}} = append(in.{{.Name}}, &{{$FileQualifiedGoIdent}}{
                     Name: fileheader.Filename,
                     Size: fileheader.Size,
                     Content:filebuf,
                 })
                 {{else}}
-                in.{{.Name}} = &{{$FileQualifiedGoIdent}}{
+                in.{{.GoName}} = &{{$FileQualifiedGoIdent}}{
                     Name: fileheader.Filename,
                     Size: fileheader.Size,
                     Content:filebuf,
