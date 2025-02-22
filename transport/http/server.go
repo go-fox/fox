@@ -123,6 +123,8 @@ func (s *Server) init() {
 			ReduceMemoryUsage:             conf.ReduceMemoryUsage,
 			StreamRequestBody:             conf.StreamRequestBody,
 		}
+		// 配置http中间件
+		s.router.middlewares = append(s.router.middlewares, s.config.httpMiddlewares...)
 	})
 }
 

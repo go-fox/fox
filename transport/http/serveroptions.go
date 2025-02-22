@@ -47,6 +47,7 @@ type ServerConfig struct {
 	WriteBufferSize    int           `json:"write_buffer_size"`
 	ReduceMemoryUsage  bool          `json:"reduce_memory_usage"`
 	StreamRequestBody  bool          `json:"stream_request_body"`
+	httpMiddlewares    []Handler     // http中间件
 	listener           net.Listener
 	tlsConf            *tls.Config
 	ene                EncodeErrorFunc
@@ -61,16 +62,17 @@ type ServerConfig struct {
 // DefaultServerConfig default server options
 func DefaultServerConfig() *ServerConfig {
 	return &ServerConfig{
-		Network:     "tcp",
-		Address:     "0.0.0.0:0",
-		Timeout:     3 * time.Second,
-		middlewares: matcher.New(),
-		ene:         DefaultErrorHandler,
-		enc:         DefaultResponseHandler,
-		decQuery:    DefaultDecodeRequestQuery,
-		decVars:     DefaultDecodeRequestVars,
-		decBody:     DefaultDecodeRequestBody,
-		logger:      slog.Default().With(slog.String("mod", "transport.http.server")),
+		Network:         "tcp",
+		Address:         "0.0.0.0:0",
+		Timeout:         3 * time.Second,
+		middlewares:     matcher.New(),
+		ene:             DefaultErrorHandler,
+		enc:             DefaultResponseHandler,
+		decQuery:        DefaultDecodeRequestQuery,
+		decVars:         DefaultDecodeRequestVars,
+		decBody:         DefaultDecodeRequestBody,
+		logger:          slog.Default().With(slog.String("mod", "transport.http.server")),
+		httpMiddlewares: make([]Handler, 0),
 	}
 }
 
@@ -106,6 +108,13 @@ func Network(network string) ServerOption {
 func Address(address string) ServerOption {
 	return func(o *ServerConfig) {
 		o.Address = address
+	}
+}
+
+// WithHttpHandler with a http handler
+func WithHttpHandler(h ...Handler) ServerOption {
+	return func(o *ServerConfig) {
+		o.httpMiddlewares = h
 	}
 }
 

@@ -169,7 +169,7 @@ func WithMiddleware(mws ...middleware.Middleware) ClientOption {
 	}
 }
 
-// WithNodeFilters with a node filters option
+// WithNodeFilters with a node httpHandlers option
 func WithNodeFilters(nodeFilters ...selector.NodeFilter) ClientOption {
 	return func(c *ClientConfig) {
 		c.nodeFilters = nodeFilters
