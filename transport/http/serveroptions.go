@@ -111,8 +111,8 @@ func Address(address string) ServerOption {
 	}
 }
 
-// WithHttpHandler with a http handler
-func WithHttpHandler(h ...Handler) ServerOption {
+// WithFilter with a http handler
+func WithFilter(h ...Handler) ServerOption {
 	return func(o *ServerConfig) {
 		o.httpMiddlewares = h
 	}
