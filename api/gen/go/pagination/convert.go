@@ -12,6 +12,9 @@ import (
 func (x *PagingRequest) ToPagination() (*pagination.PagingRequest, error) {
 	query := x.GetQuery()
 	var condition pagination.Condition
+	if query == "" {
+		query = "{}"
+	}
 	if err := codec.GetCodec("json").Unmarshal([]byte(query), &x.Query); err != nil {
 		return nil, err
 	}
