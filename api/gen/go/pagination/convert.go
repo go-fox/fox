@@ -15,7 +15,7 @@ func (x *PagingRequest) ToPagination() (*pagination.PagingRequest, error) {
 	if query == "" {
 		query = "{}"
 	}
-	if err := codec.GetCodec("json").Unmarshal([]byte(query), &x.Query); err != nil {
+	if err := codec.GetCodec("json").Unmarshal([]byte(query), &condition); err != nil {
 		return nil, err
 	}
 	orderBy := x.GetOrderBy()
