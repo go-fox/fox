@@ -169,5 +169,6 @@ func FromError(err error) *Error {
 		default:
 		}
 	}
+	ret.cause = err
 	return ret.WithStack()
 }
