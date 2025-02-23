@@ -18,8 +18,11 @@ func (x *PagingRequest) ToPagination() (*pagination.PagingRequest, error) {
 	if err := codec.GetCodec("json").Unmarshal([]byte(query), &condition); err != nil {
 		return nil, err
 	}
+	var orderByArray []string
 	orderBy := x.GetOrderBy()
-	orderByArray := strings.Split(orderBy, ",")
+	if len(x.GetOrderBy()) > 0 {
+		orderByArray = strings.Split(orderBy, ",")
+	}
 	selectFields := strings.Split(x.GetFields(), ",")
 	return &pagination.PagingRequest{
 		Page:       x.GetPage(),
