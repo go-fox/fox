@@ -34,9 +34,14 @@ type Error struct {
 // Error impl error.Error
 func (e *Error) Error() string {
 	if e.stack != nil {
-		return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v cause = %v stack= %v", e.Code, e.Reason, e.Message, e.Metadata, e.cause, e.stack)
+		return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v cause = %v stack= %+v", e.Code, e.Reason, e.Message, e.Metadata, e.cause, e.stack)
 	}
 	return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v cause = %v ", e.Code, e.Reason, e.Message, e.Metadata, e.cause)
+}
+
+// Stack get error stack
+func (e *Error) Stack() string {
+	return fmt.Sprintf("%+v\n", e.stack)
 }
 
 // JSON json data
@@ -88,13 +93,14 @@ func (e *Error) GRPCStatus() *status.Status {
 
 // New create an error
 func New(code int, reason, message string) *Error {
-	return &Error{
+	err := &Error{
 		Status: foxStatus.Status{
 			Code:    int32(code),
 			Message: message,
 			Reason:  reason,
 		},
 	}
+	return err.WithStack()
 }
 
 // Errorf is new a error
@@ -163,5 +169,5 @@ func FromError(err error) *Error {
 		default:
 		}
 	}
-	return ret
+	return ret.WithStack()
 }
