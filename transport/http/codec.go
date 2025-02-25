@@ -152,21 +152,14 @@ func DefaultDecodeRequestForm(req *Context, v any) error {
 
 // DefaultErrorHandler default error handler
 func DefaultErrorHandler(c *Context, err error) error {
-	code := StatusInternalServerError
-	var e *errors.Error
-	body := err.Error()
-	if errors.As(err, &e) {
-		code = int(e.Code)
-		subtype := httputil.ContentSubtype(c.GetRequestHeader(HeaderContentType))
-		switch subtype {
-		case "json":
-			body = e.JSON()
-		default:
-			body = e.Error()
-		}
+	se := errors.FromError(err)
+	encoding, _ := CodecForRequest(c.Request(), "Accept")
+	data, err := encoding.Marshal(se)
+	if err != nil {
+		c.SetStatusCode(StatusInternalServerError)
+		return nil
 	}
-	c.SetResponseHeader(HeaderContentType, MIMETextPlainCharsetUTF8)
-	return c.SetStatusCode(code).SendString(body)
+	return c.SetStatusCode(int(se.Code)).SendString(bytesconv.BytesToString(data))
 }
 
 // DefaultRequestEncoder default client request encoder
