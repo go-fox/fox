@@ -26,7 +26,7 @@ package websocket
 import (
 	"strings"
 
-	"github.com/go-fox/fox/api/protocol"
+	"github.com/go-fox/fox/api/gen/go/protocol"
 	"github.com/go-fox/fox/transport"
 )
 

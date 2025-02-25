@@ -37,7 +37,7 @@ import (
 	"github.com/go-fox/sugar/util/surl"
 	"github.com/valyala/fasthttp"
 
-	"github.com/go-fox/fox/api/protocol"
+	"github.com/go-fox/fox/api/gen/go/protocol"
 	"github.com/go-fox/fox/errors"
 
 	"github.com/panjf2000/ants/v2"

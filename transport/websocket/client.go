@@ -33,7 +33,7 @@ import (
 	"github.com/go-fox/sugar/container/smap"
 	"github.com/google/uuid"
 
-	"github.com/go-fox/fox/api/protocol"
+	"github.com/go-fox/fox/api/gen/go/protocol"
 	"github.com/go-fox/fox/codec"
 	"github.com/go-fox/fox/codec/proto"
 	"github.com/go-fox/fox/middleware"

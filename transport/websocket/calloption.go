@@ -23,7 +23,7 @@
 // SOFTWARE.
 package websocket
 
-import "github.com/go-fox/fox/api/protocol"
+import "github.com/go-fox/fox/api/gen/go/protocol"
 
 var _ CallOption = (*UnimplementedOption)(nil)
 

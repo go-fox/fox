@@ -28,7 +28,7 @@ import (
 
 	"github.com/go-fox/sugar/container/spool"
 
-	"github.com/go-fox/fox/api/protocol"
+	"github.com/go-fox/fox/api/gen/go/protocol"
 	"github.com/go-fox/fox/middleware"
 )
 
@@ -73,15 +73,15 @@ func releaseContext(ctx *wrappedContext) {
 
 // Middleware run middleware
 func (w *wrappedContext) Middleware(h middleware.Handler) middleware.Handler {
-	return middleware.Chain(w.srv.ms...)(h)
+	return middleware.Chain(w.srv.config.ms...)(h)
 }
 
 // Result writes data to a client
 func (w *wrappedContext) Result(data any) error {
-	return w.srv.enc(w.ss, w.request, w.reply, data)
+	return w.srv.config.enc(w.ss, w.request, w.reply, data)
 }
 
 // Bind bind data
 func (w *wrappedContext) Bind(data any) error {
-	return w.srv.dec(w.request, data)
+	return w.srv.config.dec(w.request, data)
 }

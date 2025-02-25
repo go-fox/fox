@@ -35,7 +35,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/go-fox/fox/api/protocol"
+	"github.com/go-fox/fox/api/gen/go/protocol"
 	"github.com/go-fox/fox/codec"
 	"github.com/go-fox/fox/errors"
 )
