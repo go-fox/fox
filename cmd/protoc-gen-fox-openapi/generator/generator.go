@@ -600,6 +600,10 @@ func (g *OpenAPIv3Generator) buildOperationV3(
 		responses.ResponseOrReference = append(responses.ResponseOrReference, defaultResponse)
 	}
 
+	if d.Components != nil && d.Components.Responses != nil {
+		responses.ResponseOrReference = append(responses.ResponseOrReference, d.Components.Responses.AdditionalProperties...)
+	}
+
 	// Create the operation.
 	op := &v3.Operation{
 		Tags:        []string{tagName},
@@ -715,6 +719,11 @@ func (g *OpenAPIv3Generator) addOperationToDocumentV3(d *v3.Document, op *v3.Ope
 func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*protogen.Service) {
 	for _, service := range services {
 		annotationsCount := 0
+		var tagName string
+		serviceComment := g.filterCommentString(service.Comments.Leading)
+		if len(serviceComment) > 0 {
+			tagName = serviceComment
+		}
 
 		for _, method := range service.Methods {
 			comment := g.filterCommentString(method.Comments.Leading)
@@ -765,7 +774,7 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 					defaultHost := proto.GetExtension(service.Desc.Options(), annotations.E_DefaultHost).(string)
 
 					op, path2 := g.buildOperationV3(
-						d, operationID, service.GoName, comment, defaultHost, path, body, inputMessage, outputMessage)
+						d, operationID, tagName, comment, defaultHost, path, body, inputMessage, outputMessage)
 
 					// Merge any `Operation` annotations with the current
 					extOperation := proto.GetExtension(method.Desc.Options(), v3.E_Operation)
@@ -780,7 +789,7 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 
 		if annotationsCount > 0 {
 			comment := g.filterCommentString(service.Comments.Leading)
-			d.Tags = append(d.Tags, &v3.Tag{Name: service.GoName, Description: comment})
+			d.Tags = append(d.Tags, &v3.Tag{Name: tagName, Description: comment})
 		}
 	}
 }
