@@ -6,11 +6,5 @@ option go_package = "github.com/fox-apis/fox/api/gen/go/migrate;migrate";
 
 // extend method
 extend google.protobuf.MethodOptions {
-  Route route = 60001;
-}
-
-// route
-message Route{
-  int32 id = 1; // route id
-  string title=2; // route title
+  bool route = 60001; // 是否是路由
 }
