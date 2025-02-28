@@ -1,8 +1,6 @@
 # 配置protoc生成规则
 version: v2
 
-clean: true
-
 managed:
   enabled: true
   disable:

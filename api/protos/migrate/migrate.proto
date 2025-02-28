@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package fox.migrate;
+import "google/protobuf/descriptor.proto";
+option go_package = "github.com/fox-apis/fox/api/gen/go/migrate;migrate";
+
+// 扩展route.sql
+extend google.protobuf.MethodOptions {
+  RouteRule route = 50001;
+}
+// 路由规则
+message RouteRule{
+  string title = 1;
+}
