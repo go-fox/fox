@@ -9,6 +9,10 @@ import (
     {{.Imports}}
 )
 
+func init() {
+    register("routes", {{.FuncName}})
+}
+
 // {{.FuncName}} 编写插入
 func {{.FuncName}}(dir *migrate.LocalDir) error {
     w := &schema.DirWriter{Dir: dir}

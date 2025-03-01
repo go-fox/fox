@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -19,24 +19,32 @@ type Module struct {
 }
 
 // isMod 判断是否是mod
-func isMod(workDir string) (bool, error) {
+func isMod(workDir string) (bool, string, error) {
 	if len(workDir) == 0 {
-		return false, errors.New("the work directory is not found")
+		return false, "", errors.New("the work directory is not found")
 	}
-	if _, err := os.Stat(workDir); err != nil {
-		return false, err
+	abs, err := filepath.Abs(workDir)
+	if err != nil {
+		return false, "", err
 	}
 
-	data, err := Exec("go list -m -f '{{.GoMod}}'", workDir)
+	data, err := Exec("go list -m -f '{{.GoMod}}'", abs)
 	if err != nil || len(data) == 0 {
-		return false, nil
+		return false, "", nil
 	}
 
-	return true, nil
+	return true, abs, nil
 }
 
 // getRealModule 获取指定工作目录下的模块信息
 func getRealModule(workDir string) (*Module, error) {
+	is, _, err := isMod(workDir)
+	if err != nil {
+		return nil, err
+	}
+	if !is {
+		return nil, errors.New(fmt.Sprintf("not found `go.mod` in the work directory:%s"))
+	}
 	data, err := Exec("go list -json -m", workDir)
 	if err != nil {
 		return nil, err

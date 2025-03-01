@@ -6,6 +6,7 @@ import (
 	"github.com/emicklei/proto"
 	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/model"
 	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/templatex"
+	"google.golang.org/protobuf/compiler/protogen"
 	"os"
 	"path"
 	"path/filepath"
@@ -27,14 +28,17 @@ func NewVersion() string {
 
 // Configuration 配置
 type Configuration struct {
-	Src      string // 源文件目录
-	Table    string // 表名
-	Dist     string // 生成文件目录
-	Filename string // 文件名
+	Src        *string // 源文件目录
+	Table      *string // 表名
+	Package    *string // 生成文件目录
+	Filename   *string // 文件名
+	Version    *bool   // 版本号
+	EntPackage *string // entgo
 }
 
 // FoxRouteSQLGenerator 路由生成器
 type FoxRouteSQLGenerator struct {
+	plugin    *protogen.Plugin
 	config    Configuration
 	protos    []*proto.Proto
 	srcDir    string
@@ -52,14 +56,15 @@ type FoxRoute struct {
 }
 
 // NewFoxRouteSQLGenerator 创建路由生成器
-func NewFoxRouteSQLGenerator(conf Configuration) (*FoxRouteSQLGenerator, error) {
-	protos, err := readParser(conf.Src)
+func NewFoxRouteSQLGenerator(conf Configuration, plugin *protogen.Plugin) (*FoxRouteSQLGenerator, error) {
+	protos, err := readParser(*conf.Src)
 	if err != nil {
 		return nil, err
 	}
 	return &FoxRouteSQLGenerator{
 		config: conf,
 		protos: protos,
+		plugin: plugin,
 	}, nil
 }
 
@@ -69,44 +74,31 @@ func (f *FoxRouteSQLGenerator) Run() error {
 	if err != nil {
 		return err
 	}
-	abs, err := filepath.Abs(f.config.Dist)
-	if err != nil {
-		return err
-	}
-	f.srcDir = abs
-
-	realModule, err := getRealModule(abs)
-	if err != nil {
-		return err
-	}
-
-	f.module = realModule
-
+	var entImport string
 	// 读取当前模块的ent所在的目录
-	entImport := f.getEntImport()
-	if len(entImport) == 0 {
-		return errors.New("ent path not found")
+	if len(*f.config.EntPackage) > 0 {
+		entImport = *f.config.EntPackage
+	} else {
+		entImport = f.getEntImport()
+		if len(entImport) == 0 {
+			return errors.New("ent path not found")
+		}
 	}
 
-	lastFolder := filepath.Base(abs)
-	f.goPackage = lastFolder
-	f.funcName = ToCamelCase(f.config.Filename, true)
+	f.goPackage = *f.config.Package
+	f.funcName = ToCamelCase(*f.config.Filename, true)
 	var goImports []string
 	goImports = append(goImports, `"`+entImport+`"`)
 
 	parse := templatex.With("insert_router").Parse(httpTemplate).GoFmt(true)
 
 	// 创建文件
-	file, err := os.OpenFile(filepath.Join(abs, f.config.Filename+".go"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+	file := f.plugin.NewGeneratedFile(*f.config.Filename+".go", "")
 
 	execute, err := parse.Execute(map[string]any{
 		"Imports":     strings.Join(goImports, "\n"),
 		"PackageName": f.goPackage,
-		"TableName":   f.config.Table,
+		"TableName":   ToCamelCase(*f.config.Table, true),
 		"FuncName":    f.funcName,
 		"Routes":      routes,
 	})
@@ -256,7 +248,7 @@ func (f *FoxRouteSQLGenerator) getEntPath(src string) string {
 }
 
 func (f *FoxRouteSQLGenerator) getEntImport() string {
-	entPath := f.getEntPath(f.module.Dir)
+	entPath := f.getEntPath("")
 	if len(entPath) == 0 {
 		return ""
 	}
