@@ -1,8 +1,8 @@
 package generator
 
 import (
+	"bytes"
 	_ "embed"
-	"errors"
 	"github.com/emicklei/proto"
 	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/model"
 	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/templatex"
@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 	"unicode"
 )
@@ -28,12 +29,13 @@ func NewVersion() string {
 
 // Configuration 配置
 type Configuration struct {
-	Src        *string // 源文件目录
-	Table      *string // 表名
-	Package    *string // 生成文件目录
-	Filename   *string // 文件名
-	Version    *bool   // 版本号
-	EntPackage *string // entgo
+	Src         *string // 源文件目录
+	Table       *string // 表名
+	Package     *string // 生成文件目录
+	Filename    *string // 文件名
+	Version     *bool   // 版本号
+	IDColumn    *string // id字段
+	TitleColumn *string // 标题字段
 }
 
 // FoxRouteSQLGenerator 路由生成器
@@ -68,39 +70,34 @@ func NewFoxRouteSQLGenerator(conf Configuration, plugin *protogen.Plugin) (*FoxR
 	}, nil
 }
 
+var funcMap = template.FuncMap{
+	"now": func() string { return time.Now().UTC().Format("20060102150405") },
+}
+
 // Run 执行生成
 func (f *FoxRouteSQLGenerator) Run() error {
 	routes, err := f.parserRoute()
 	if err != nil {
 		return err
 	}
-	var entImport string
-	// 读取当前模块的ent所在的目录
-	if len(*f.config.EntPackage) > 0 {
-		entImport = *f.config.EntPackage
-	} else {
-		entImport = f.getEntImport()
-		if len(entImport) == 0 {
-			return errors.New("ent path not found")
-		}
+
+	parse := templatex.With("insert_router").Parse(httpTemplate)
+
+	var name = &bytes.Buffer{}
+	if err := template.Must(template.New("").Funcs(funcMap).Parse("{{ now }}{{ with .Name }}_{{ . }}{{ end }}.sql")).Execute(name, map[string]any{
+		"Name": f.config.Filename,
+	}); err != nil {
+		return err
 	}
-
-	f.goPackage = *f.config.Package
-	f.funcName = ToCamelCase(*f.config.Filename, true)
-	var goImports []string
-	goImports = append(goImports, `"`+entImport+`"`)
-
-	parse := templatex.With("insert_router").Parse(httpTemplate).GoFmt(true)
-
 	// 创建文件
-	file := f.plugin.NewGeneratedFile(*f.config.Filename+".go", "")
+	file := f.plugin.NewGeneratedFile(name.String(), "")
 
 	execute, err := parse.Execute(map[string]any{
-		"Imports":     strings.Join(goImports, "\n"),
-		"PackageName": f.goPackage,
-		"TableName":   ToCamelCase(*f.config.Table, true),
-		"FuncName":    f.funcName,
+		"TableName":   *f.config.Table,
 		"Routes":      routes,
+		"IDColumn":    *f.config.IDColumn,
+		"TitleColumn": *f.config.TitleColumn,
+		"Now":         time.Now().Unix(),
 	})
 	if err != nil {
 		return err

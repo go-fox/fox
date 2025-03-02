@@ -1,27 +1,13 @@
-{{$tableName := .TableName}}
-package {{.PackageName}}
+{{$tableName := .TableName}}{{$now := .Now}}{{$idColumn := .IDColumn}}{{$titleColumn := .TitleColumn}}-- +goose Up
+-- +goose StatementBegin
+START TRANSACTION;
+{{ range .Routes}}INSERT INTO `{{$tableName}}` (`{{$idColumn}}`,`{{$titleColumn}}`,`create_at`,`update_at`) VALUES ('{{.ID}}','{{.Title}}','{{$now}}','{{$now}}');
+{{ end }}COMMIT;
+-- +goose StatementEnd
 
-import (
-    "ariga.io/atlas/sql/migrate"
-    "context"
-    "entgo.io/ent/dialect"
-    "entgo.io/ent/dialect/sql/schema"
-    {{.Imports}}
-)
-
-func init() {
-    register("routes", {{.FuncName}})
-}
-
-// {{.FuncName}} 编写插入
-func {{.FuncName}}(dir *migrate.LocalDir) error {
-    w := &schema.DirWriter{Dir: dir}
-    client := ent.NewClient(ent.Driver(schema.NewWriteDriver(dialect.MySQL, w)))
-    if err := client.{{$tableName}}.CreateBulk(
-        {{ range .Routes}}client.{{$tableName}}.Create().SetID("{{.ID}}").SetTitle("{{.Title}}"),
-        {{ end }}
-    ).Exec(context.Background()); err != nil {
-        return err
-    }
-    return w.FlushChange("insert_route", "Inset the route")
-}
+-- +goose Down
+-- +goose StatementBegin
+START TRANSACTION;
+{{ range .Routes}}DELETE FROM `{{$tableName}}` WHERE id = '{{.ID}}';
+{{ end }}COMMIT;
+-- +goose StatementEnd
