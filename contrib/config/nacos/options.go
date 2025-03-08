@@ -23,12 +23,13 @@ func WithServer(url url.URL) Option {
 	if err != nil {
 		port = 80
 	}
+	host := url.Hostname()
 	return func(o *options) {
 		o.serverConfigs = append(o.serverConfigs, constant.ServerConfig{
 			Scheme:      url.Scheme,
 			ContextPath: url.Path,
 			Port:        uint64(port),
-			IpAddr:      url.Host,
+			IpAddr:      host,
 		})
 	}
 }
