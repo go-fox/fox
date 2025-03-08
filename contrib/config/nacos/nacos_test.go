@@ -7,7 +7,7 @@ import (
 
 func TestName(t *testing.T) {
 	configServers := []string{
-		"http://62.234.170.161:8848/nacos",
+		"http://127.0.0.1:8848/nacos?grpc=9848",
 	}
 	env := "dev"
 	var opts []Option
