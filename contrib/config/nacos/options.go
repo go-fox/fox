@@ -88,3 +88,17 @@ func WithDataID(dataID string) Option {
 		o.configParam.DataId = dataID
 	}
 }
+
+// WithUsername 设置用户名
+func WithUsername(username string) Option {
+	return func(o *options) {
+		o.clientConfig.Username = username
+	}
+}
+
+// WithPassword 设置密码
+func WithPassword(password string) Option {
+	return func(o *options) {
+		o.clientConfig.Password = password
+	}
+}
