@@ -24,12 +24,21 @@ func WithServer(url url.URL) Option {
 		port = 80
 	}
 	host := url.Hostname()
+	grpcPort := uint64(9848)
+	grpcPortStr := url.Query().Get("grpc")
+	if grpcPortStr != "" {
+		grpcPort, err = strconv.ParseUint(grpcPortStr, 10, 64)
+		if err != nil {
+			grpcPort = 9848
+		}
+	}
 	return func(o *options) {
 		o.serverConfigs = append(o.serverConfigs, constant.ServerConfig{
 			Scheme:      url.Scheme,
 			ContextPath: url.Path,
 			Port:        uint64(port),
 			IpAddr:      host,
+			GrpcPort:    grpcPort,
 		})
 	}
 }
