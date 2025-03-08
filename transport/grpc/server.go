@@ -33,7 +33,6 @@ import (
 	"github.com/go-fox/sugar/util/shost"
 	"github.com/go-fox/sugar/util/surl"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/admin"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -56,7 +55,6 @@ type Server struct {
 	config     *ServerConfig
 	health     *health.Server
 	middleware matcher.Matcher
-	adminClean func()
 }
 
 // NewServer create server
@@ -113,7 +111,6 @@ func NewServerWithConfig(cs ...*ServerConfig) *Server {
 		grpcOpts = append(grpcOpts, conf.grpcOpts...)
 	}
 	srv.Server = grpc.NewServer(grpcOpts...)
-	srv.adminClean, _ = admin.Register(srv.Server)
 	// health check
 	if !conf.CustomHealth {
 		grpc_health_v1.RegisterHealthServer(srv.Server, srv.health)
@@ -151,9 +148,6 @@ func (s *Server) Start(ctx context.Context) error {
 
 // Stop 停止
 func (s *Server) Stop(ctx context.Context) error {
-	if s.adminClean != nil {
-		s.adminClean()
-	}
 	s.GracefulStop()
 	s.health.Shutdown()
 	s.config.log.Info("[gRPC] server stopping")
