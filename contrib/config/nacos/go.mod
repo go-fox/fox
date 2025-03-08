@@ -3,7 +3,7 @@ module github.com/go-fox/fox/contrib/config/nacos
 go 1.23.6
 
 require (
-	github.com/go-fox/fox v0.0.0-20250302185926-a81033dcdcbb
+	github.com/go-fox/fox v0.0.0-20250308123604-713009ada130
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.9
 )
 
@@ -35,10 +35,14 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clbanning/mxj/v2 v2.5.5 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
+	github.com/fatih/color v1.18.0 // indirect
 	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -50,6 +54,7 @@ require (
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
@@ -65,4 +70,3 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/go-fox/fox => ../../../
