@@ -10,7 +10,7 @@ import (
 
 // ToPagination 转换为分页请求
 func (x *PagingRequest) ToPagination() (*pagination.PagingRequest, error) {
-	query := x.GetQuery()
+	query := x.GetCondition()
 	var condition pagination.Condition
 	if query == "" {
 		query = "{}"
@@ -30,9 +30,6 @@ func (x *PagingRequest) ToPagination() (*pagination.PagingRequest, error) {
 		OrderBy:    orderByArray,
 		Pagination: !x.GetNoPaging(),
 		Fields:     selectFields,
-		Where: &pagination.Where{
-			Conditions:      condition.Conditions,
-			LogicalOperator: condition.LogicalOperator,
-		},
+		Condition:  &condition,
 	}, nil
 }

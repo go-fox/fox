@@ -8,7 +8,7 @@ require (
 	github.com/fasthttp/websocket v1.5.12
 	github.com/fatih/color v1.18.0
 	github.com/fsnotify/fsnotify v1.8.0
-	github.com/go-fox/go-utils v0.0.0-20250225091456-27acaf425a44
+	github.com/go-fox/go-utils v0.0.0-20250310000302-f8f1e0dd98f1
 	github.com/go-fox/sugar v0.0.0-20241003034413-d0ef6605084f
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/google/uuid v1.6.0
