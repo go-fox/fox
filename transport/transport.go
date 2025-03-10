@@ -25,6 +25,7 @@ package transport
 
 import (
 	"context"
+	"net"
 	"net/url"
 	// init encoding
 	_ "github.com/go-fox/fox/codec/json"
@@ -64,6 +65,8 @@ type Endpointer interface {
 type Transporter interface {
 	// Kind transporter
 	Kind() Kind
+	// RemoteAddr 获取连接地址
+	RemoteAddr() net.Addr
 	// Endpoint return server or client endpoint
 	// Server Transport: grpc://127.0.0.1:9000
 	// Client Transport: discovery:///provider-demo

@@ -25,6 +25,8 @@ package grpc
 
 import (
 	"context"
+	"google.golang.org/grpc/peer"
+	"net"
 
 	"google.golang.org/grpc"
 	grpcmd "google.golang.org/grpc/metadata"
@@ -41,10 +43,16 @@ func (s *Server) unaryServerInterceptor() grpc.UnaryServerInterceptor {
 		defer cancel()
 		md, _ := grpcmd.FromIncomingContext(ctx)
 		replyHeader := grpcmd.MD{}
+		var remoteAddr net.Addr
+		p, ok := peer.FromContext(ctx)
+		if ok {
+			remoteAddr = p.Addr
+		}
 		tr := &Transport{
 			operation:   info.FullMethod,
 			reqHeader:   headerCarrier(md),
 			replyHeader: headerCarrier(replyHeader),
+			remoteAddr:  remoteAddr,
 		}
 		if s.endpoint != nil {
 			tr.endpoint = s.endpoint.String()

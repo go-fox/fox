@@ -25,6 +25,7 @@ package grpc
 
 import (
 	"google.golang.org/grpc/metadata"
+	"net"
 
 	"github.com/go-fox/fox/selector"
 	"github.com/go-fox/fox/transport"
@@ -42,6 +43,12 @@ type Transport struct {
 	reqHeader   headerCarrier
 	replyHeader headerCarrier
 	nodeFilters []selector.NodeFilter
+	remoteAddr  net.Addr
+}
+
+// RemoteAddr 获取远程连接地址
+func (tr *Transport) RemoteAddr() net.Addr {
+	return tr.remoteAddr
 }
 
 // Kind returns the transport kind.

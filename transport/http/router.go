@@ -113,6 +113,7 @@ func (r *router) ServeHTTP(ctx *Context) error {
 			pathTemplate: pathTemplate,
 			request:      ctx.Request(),
 			response:     ctx.Response(),
+			remoteAddr:   ctx.fastCtx.RemoteAddr(),
 		}
 		if ctx.srv.endpoint != nil {
 			v.endpoint = ctx.srv.endpoint.String()

@@ -25,6 +25,7 @@ package http
 
 import (
 	"context"
+	"net"
 
 	"github.com/go-fox/fox/internal/bytesconv"
 	"github.com/go-fox/fox/transport"
@@ -43,6 +44,11 @@ type Transport struct {
 	original     string    // 原始地址
 	request      *Request  // 请求信息
 	response     *Response // 响应信息
+	remoteAddr   net.Addr  // 远程连接地址
+}
+
+func (t *Transport) RemoteAddr() net.Addr {
+	return t.remoteAddr
 }
 
 // Kind returns the transport kind.

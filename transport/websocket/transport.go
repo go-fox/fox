@@ -24,6 +24,7 @@
 package websocket
 
 import (
+	"net"
 	"strings"
 
 	"github.com/go-fox/fox/api/gen/go/protocol"
@@ -46,6 +47,10 @@ type Transport struct {
 	ss        *Session
 	req       *protocol.Request
 	reply     *protocol.Reply
+}
+
+func (t *Transport) RemoteAddr() net.Addr {
+	return t.ss.conn.RemoteAddr()
 }
 
 // Kind returns the transport kind.
