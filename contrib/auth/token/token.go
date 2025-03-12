@@ -928,7 +928,7 @@ func (t *token) getSessionBySessionId(ctx context.Context, sessionId string, isC
 	}
 	var ss = &session{}
 	var err error
-	if err := t.config.repository.Get(ctx, t.splicingKeySession(sessionId), ss); err != nil {
+	if err := t.config.repository.Get(ctx, sessionId, ss); err != nil {
 		return nil, err
 	}
 	// 如果没有
