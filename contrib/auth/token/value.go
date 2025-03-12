@@ -1,6 +1,7 @@
 package token
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -8,9 +9,6 @@ import (
 	"time"
 
 	"github.com/go-fox/sugar/container/satomic"
-
-	"github.com/go-fox/fox/codec"
-	"github.com/go-fox/fox/codec/json"
 )
 
 type activeTimeValue struct {
@@ -140,12 +138,11 @@ func (a *atomicValue) Map() (map[string]Value, error) {
 
 // Scan scan value to struct
 func (a *atomicValue) Scan(val interface{}) error {
-	encoding := codec.GetCodec(json.Name)
-	data, err := encoding.Marshal(a.Load())
+	data, err := json.Marshal(a.Load())
 	if err != nil {
 		return err
 	}
-	return encoding.Unmarshal(data, val)
+	return json.Unmarshal(data, val)
 }
 
 type errValue struct {
