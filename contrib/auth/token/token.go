@@ -945,6 +945,8 @@ func (t *token) getSessionBySessionId(ctx context.Context, sessionId string, isC
 		if err := t.config.repository.Set(ctx, sessionId, ss, time.Duration(t.config.Timeout)*time.Second); err != nil {
 			return nil, err
 		}
+	} else if ss.ID != "" && ss.repo == nil {
+		ss.repo = t.config.repository
 	}
 	// 如果还是没有则返回nil
 	if ss.ID == "" {
