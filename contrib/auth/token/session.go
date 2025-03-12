@@ -46,8 +46,8 @@ const (
 
 // Session 定义，给
 type Session interface {
-	Get(key string) Value
-	Set(key string, val interface{})
+	Get(ctx context.Context, key string) Value
+	Set(ctx context.Context, key string, val interface{}) error
 	GetID() string
 }
 
@@ -67,15 +67,20 @@ func (s *session) GetID() string {
 	return s.ID
 }
 
-func (s *session) Get(key string) Value {
+func (s *session) Get(ctx context.Context, key string) Value {
+	err := s.reload(ctx)
+	if err != nil {
+		return &errValue{err: err}
+	}
 	a, ok := s.Data[key]
 	if !ok {
 		return &errValue{err: errors.New("key not found")}
 	}
 	return newAtomicValue(a)
 }
-func (s *session) Set(key string, val interface{}) {
+func (s *session) Set(ctx context.Context, key string, val interface{}) error {
 	s.Data[key] = val
+	return s.repo.Update(ctx, s.ID, s)
 }
 
 // updateMinTimeout 修改此Session的最小剩余存活时间 (只有在 Session 的过期时间低于指定的 minTimeout 时才会进行修改)
@@ -250,6 +255,10 @@ func (s *session) logoutByTokenSignCountIsZero(ctx context.Context) error {
 
 func (s *session) update(ctx context.Context) error {
 	return s.repo.Update(ctx, s.ID, s)
+}
+
+func (s *session) reload(ctx context.Context) error {
+	return s.repo.Get(ctx, s.ID, s)
 }
 
 func (s *session) logout(ctx context.Context) error {
