@@ -124,7 +124,11 @@ func (s *Server) init() {
 			StreamRequestBody:             conf.StreamRequestBody,
 		}
 		// 配置http中间件
-		s.router.middlewares = append(s.router.middlewares, s.config.httpMiddlewares...)
+		var mws []any
+		for _, httpMiddleware := range s.config.httpMiddlewares {
+			mws = append(mws, httpMiddleware)
+		}
+		s.Use(mws...)
 	})
 }
 
