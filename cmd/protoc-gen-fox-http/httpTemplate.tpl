@@ -57,10 +57,11 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
             }
         }{{ end }}
         http.SetOperation(ctx,Operation{{$svrType}}{{.OriginalName}})
-        h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-            return srv.{{.Name}}(ctx, req.(*{{.Request}}))
+        h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
+            defer ctx.SetContext(c)
+            return srv.WechatUserStatus(ctx, req.(*WechatUserStatusRequest))
         })
-        out, err := h(ctx, &in)
+        out, err := h(ctx.Context(), &in)
         if err != nil {
             return err
         }
