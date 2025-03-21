@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	_ "embed"
+	"fmt"
 	"github.com/emicklei/proto"
 	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/model"
 	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/templatex"
@@ -118,10 +119,14 @@ func (f *FoxRouteSQLGenerator) parserRoute() ([]*FoxRoute, error) {
 				for _, option := range r.Options {
 					var title string
 					var has bool
+					if r.Comment == nil {
+						continue
+					}
 					for _, line := range r.Comment.Lines {
 						if len(line) > 0 {
 							// 去掉注释中的空格
-							title = strings.Trim(line, " ")
+							title = strings.ReplaceAll(strings.ReplaceAll(line, "\n", ""), " ", "")
+							fmt.Fprintf(os.Stderr, "title %s", title)
 						}
 					}
 					if option.Name == "(fox.migrate.route)" {
