@@ -1,7 +1,8 @@
-package middleware
+package selector
 
 import (
 	"context"
+	"github.com/go-fox/fox/middleware"
 	"github.com/go-fox/fox/transport"
 	"regexp"
 	"strings"
@@ -32,16 +33,16 @@ type Builder struct {
 	path   []string
 	match  MatchFunc
 
-	ms []Middleware
+	ms []middleware.Middleware
 }
 
 // Server selector middleware
-func Server(ms ...Middleware) *Builder {
+func Server(ms ...middleware.Middleware) *Builder {
 	return &Builder{ms: ms}
 }
 
 // Client selector middleware
-func Client(ms ...Middleware) *Builder {
+func Client(ms ...middleware.Middleware) *Builder {
 	return &Builder{client: true, ms: ms}
 }
 
@@ -70,7 +71,7 @@ func (b *Builder) Match(fn MatchFunc) *Builder {
 }
 
 // Build is Builder's Build, for example: Server().Path(m1,m2).Build()
-func (b *Builder) Build() Middleware {
+func (b *Builder) Build() middleware.Middleware {
 	var transporter func(ctx context.Context) (transport.Transporter, bool)
 	if b.client {
 		transporter = clientTransporter
@@ -114,13 +115,13 @@ func (b *Builder) matches(ctx context.Context, transporter transporter) bool {
 }
 
 // selector middleware
-func selector(transporter transporter, match func(context.Context, transporter) bool, ms ...Middleware) Middleware {
-	return func(handler Handler) Handler {
+func selector(transporter transporter, match func(context.Context, transporter) bool, ms ...middleware.Middleware) middleware.Middleware {
+	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
 			if !match(ctx, transporter) {
 				return handler(ctx, req)
 			}
-			return Chain(ms...)(handler)(ctx, req)
+			return middleware.Chain(ms...)(handler)(ctx, req)
 		}
 	}
 }
