@@ -20,8 +20,8 @@ var _ error = (*Error)(nil)
 const SupportPackageIsVersion1 = true
 
 const (
-	UnknownCode   = 500 // UnknownCode 未知错误
-	UnknownReason = ""  // UnknownReason 未知错误原因
+	UnknownCode   = 500       // UnknownCode 未知错误
+	UnknownReason = "UNKNOWN" // UnknownReason 未知错误原因
 )
 
 // Error 错误定义
