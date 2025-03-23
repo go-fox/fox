@@ -59,7 +59,7 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
         http.SetOperation(ctx,Operation{{$svrType}}{{.OriginalName}})
         h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
             defer ctx.SetContext(c)
-            return srv.{{.Name}}(ctx, req.(*{{.Request}}))
+            return srv.{{.Name}}(c, req.(*{{.Request}}))
         })
         out, err := h(ctx.Context(), &in)
         if err != nil {
@@ -89,7 +89,7 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
 		http.SetOperation(ctx,Operation{{$svrType}}{{.OriginalName}})
 		h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
             defer ctx.SetContext(c)
-            return srv.{{.Name}}(ctx, req.(*{{.Request}}))
+            return srv.{{.Name}}(c, req.(*{{.Request}}))
         })
         out, err := h(ctx.Context(), &in)
 		if err != nil {
