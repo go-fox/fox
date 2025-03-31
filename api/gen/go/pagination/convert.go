@@ -10,7 +10,7 @@ import (
 
 // ToPagination 转换为分页请求
 func (x *PagingRequest) ToPagination() (*pagination.PagingRequest, error) {
-	query := x.GetCondition()
+	query := x.GetQuery()
 	var condition pagination.Condition
 	if query == "" {
 		query = "{}"
