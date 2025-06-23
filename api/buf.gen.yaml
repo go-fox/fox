@@ -5,8 +5,7 @@ managed:
   enabled: true
   disable:
     - module: 'buf.build/googleapis/googleapis'
-    - module: 'buf.build/gnostic/gnostic'
-    - path: protos
+    - module: 'buf.build/fox/foxapis'
 
 plugins:
   - local: ["go", "run", "google.golang.org/protobuf/cmd/protoc-gen-go"]
