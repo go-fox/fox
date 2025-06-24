@@ -9,9 +9,9 @@ import (
 
 // ToPagingParams 转换为PagingParams
 func (x *PagingRequest) ToPagingParams() *PagingParams {
-	var condition []*Condition
+	var query Query
 	if x.Query != nil {
-		_ = codec.GetCodec(json.Name).Unmarshal([]byte(x.GetQuery()), &condition)
+		_ = codec.GetCodec(json.Name).Unmarshal([]byte(x.GetQuery()), &query)
 	}
 	var orderByArray []string
 	if len(x.GetOrderBy()) > 0 {
@@ -24,7 +24,7 @@ func (x *PagingRequest) ToPagingParams() *PagingParams {
 	return &PagingParams{
 		Page:     x.Page,
 		Size:     x.Size,
-		Query:    condition,
+		Query:    &query,
 		OrderBy:  orderByArray,
 		NoPaging: x.NoPaging,
 		Fields:   fields,
