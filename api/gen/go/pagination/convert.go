@@ -1,9 +1,10 @@
 package pagination
 
 import (
+	"strings"
+
 	"github.com/go-fox/fox/codec"
 	"github.com/go-fox/fox/codec/json"
-	"strings"
 )
 
 // ToPagingParams 转换为PagingParams
@@ -28,4 +29,13 @@ func (x *PagingRequest) ToPagingParams() *PagingParams {
 		NoPaging: x.NoPaging,
 		Fields:   fields,
 	}
+}
+
+// ToQuery 转换为
+func (c *Condition) ToQuery() string {
+	marshal, err := codec.GetCodec(json.Name).Marshal(c)
+	if err != nil {
+		return ""
+	}
+	return string(marshal)
 }
