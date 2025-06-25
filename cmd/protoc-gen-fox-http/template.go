@@ -11,12 +11,13 @@ import (
 var httpTemplate string
 
 type serviceDesc struct {
-	ServiceType    string // Greeter
-	ServiceName    string // helloworld.Greeter
-	ServiceComment string // 注册服务
-	Metadata       string // api/helloworld/helloworld.proto
-	Methods        []*methodDesc
-	MethodSets     map[string]*methodDesc
+	ServiceType         string // Greeter
+	ServiceName         string // helloworld.Greeter
+	ServiceComment      string // 注册服务
+	ServiceCommentTitle string // 服务注释
+	Metadata            string // api/helloworld/helloworld.proto
+	Methods             []*methodDesc
+	MethodSets          map[string]*methodDesc
 }
 
 // UploadFields 上传字段

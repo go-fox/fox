@@ -72,16 +72,21 @@ func genService(_ *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFi
 		g.P("//")
 		g.P(deprecationComment)
 	}
-	comment := service.Comments.Leading.String() + service.Comments.Trailing.String()
+	comment := service.Comments.Leading.String()
+	var commentTitle string
 	if comment != "" {
-		comment = "// " + service.GoName + "HTTPServer" + strings.TrimPrefix(strings.TrimSuffix(comment, "\n"), "//")
+		comment = strings.ReplaceAll(comment, service.GoName, "")
+		comment = strings.TrimSpace(strings.TrimPrefix(strings.TrimSuffix(comment, "\n"), "//"))
+		commentTitle = comment
+		comment = "// " + service.GoName + "HTTPServer " + comment
 	}
 	// HTTP Server.
 	sd := &serviceDesc{
-		ServiceType:    service.GoName,
-		ServiceName:    string(service.Desc.FullName()),
-		Metadata:       file.Desc.Path(),
-		ServiceComment: comment,
+		ServiceType:         service.GoName,
+		ServiceName:         string(service.Desc.FullName()),
+		Metadata:            file.Desc.Path(),
+		ServiceComment:      comment,
+		ServiceCommentTitle: commentTitle,
 	}
 	for _, method := range service.Methods {
 		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
@@ -306,7 +311,7 @@ func (s *serviceDesc) getComments(m *protogen.Method) Comments {
 	keywords, desc := parseKeywords(m.Comments.Leading.String(), m.GoName)
 	if str, ok := keywords[m.GoName]; ok {
 		comment += fmt.Sprintf("// %s %s", m.GoName, str)
-	} else if len(desc) == 0 {
+	} else if len(desc) != 0 {
 		desc = s.ServiceName + "_" + m.GoName
 		comment += fmt.Sprintf("// %s %s", m.GoName, desc)
 	}
@@ -317,6 +322,8 @@ func (s *serviceDesc) getComments(m *protogen.Method) Comments {
 	}
 	// 操作路径
 	routeComment += fmt.Sprintf("// @operation /%s/%s\n", s.ServiceName, string(m.Desc.Name()))
+	// 服务名称
+	routeComment += fmt.Sprintf("// @service %s\n", s.ServiceCommentTitle)
 	// 描述
 	routeComment += fmt.Sprintf("// @description %s", desc)
 	return Comments{
@@ -336,16 +343,24 @@ func parseKeywords(comments string, method string) (map[string]string, string) {
 		if strings.HasPrefix(strings.TrimSpace(line), "@") {
 			keywords := keyWordReg.FindStringSubmatch(line)
 			keyword = keywords[1]
-			meta[keyword] = strings.Replace(line, "@"+keyword, "", -1)
+			meta[keyword] = trimLeftSpace(strings.Replace(line, "@"+keyword, "", -1))
 		} else if strings.HasPrefix(strings.TrimSpace(line), method) || i == 0 {
 			keyword = method
-			meta[keyword] = strings.Replace(line, keyword, "", -1)
+			meta[keyword] = trimLeftSpace(strings.Replace(line, keyword, "", -1))
 			desc = meta[keyword]
-		} else if keyword != "" {
+		} else if keyword != "" && len(line) > 0 {
 			meta[keyword] += "\n" + line
 		}
 	}
 	return meta, desc
+}
+
+func trimLeftSpace(str string) string {
+	if strings.HasPrefix(str, " ") {
+		str = strings.TrimPrefix(str, " ")
+		return trimLeftSpace(str)
+	}
+	return str
 }
 
 func camelCaseVars(s string) string {
