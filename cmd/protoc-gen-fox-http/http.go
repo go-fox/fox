@@ -22,7 +22,10 @@ const (
 	bindingPackage       = protogen.GoImportPath("github.com/go-fox/fox/transport/http/binding")
 )
 
-var methodSets = make(map[string]int)
+var (
+	methodSets = make(map[string]int)
+	keyWordReg = regexp.MustCompile(`^@([a-zA-z]+)`)
+)
 
 // generateFile generates a _http.pb.go file containing kratos errors definitions.
 func generateFile(gen *protogen.Plugin, file *protogen.File, omitempty bool, omitemptyPrefix string) *protogen.GeneratedFile {
@@ -69,11 +72,16 @@ func genService(_ *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFi
 		g.P("//")
 		g.P(deprecationComment)
 	}
+	comment := service.Comments.Leading.String() + service.Comments.Trailing.String()
+	if comment != "" {
+		comment = "// " + service.GoName + "HTTPServer" + strings.TrimPrefix(strings.TrimSuffix(comment, "\n"), "//")
+	}
 	// HTTP Server.
 	sd := &serviceDesc{
-		ServiceType: service.GoName,
-		ServiceName: string(service.Desc.FullName()),
-		Metadata:    file.Desc.Path(),
+		ServiceType:    service.GoName,
+		ServiceName:    string(service.Desc.FullName()),
+		Metadata:       file.Desc.Path(),
+		ServiceComment: comment,
 	}
 	for _, method := range service.Methods {
 		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
@@ -82,12 +90,12 @@ func genService(_ *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFi
 		rule, ok := proto.GetExtension(method.Desc.Options(), annotations.E_Http).(*annotations.HttpRule)
 		if rule != nil && ok {
 			for _, bind := range rule.AdditionalBindings {
-				sd.Methods = append(sd.Methods, buildHTTPRule(g, service, method, bind, omitemptyPrefix))
+				sd.Methods = append(sd.Methods, sd.buildHTTPRule(g, service, method, bind, omitemptyPrefix))
 			}
-			sd.Methods = append(sd.Methods, buildHTTPRule(g, service, method, rule, omitemptyPrefix))
+			sd.Methods = append(sd.Methods, sd.buildHTTPRule(g, service, method, rule, omitemptyPrefix))
 		} else if !omitempty {
 			path := fmt.Sprintf("%s/%s/%s", omitemptyPrefix, service.Desc.FullName(), method.Desc.Name())
-			sd.Methods = append(sd.Methods, buildMethodDesc(g, method, http.MethodPost, path))
+			sd.Methods = append(sd.Methods, sd.buildMethodDesc(g, method, http.MethodPost, path))
 		}
 	}
 	if len(sd.Methods) != 0 {
@@ -110,7 +118,7 @@ func hasHTTPRule(services []*protogen.Service) bool {
 	return false
 }
 
-func buildHTTPRule(g *protogen.GeneratedFile, service *protogen.Service, m *protogen.Method, rule *annotations.HttpRule, omitemptyPrefix string) *methodDesc {
+func (s *serviceDesc) buildHTTPRule(g *protogen.GeneratedFile, service *protogen.Service, m *protogen.Method, rule *annotations.HttpRule, omitemptyPrefix string) *methodDesc {
 	var (
 		path         string
 		method       string
@@ -146,7 +154,7 @@ func buildHTTPRule(g *protogen.GeneratedFile, service *protogen.Service, m *prot
 	}
 	body = rule.Body
 	responseBody = rule.ResponseBody
-	md := buildMethodDesc(g, m, method, path)
+	md := s.buildMethodDesc(g, m, method, path)
 	if method == http.MethodGet {
 		if body != "" {
 			_, _ = fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: %s %s body should not be declared.\n", method, path)
@@ -192,7 +200,7 @@ func uploadFiled(m *protogen.Method) (ret []UploadFields) {
 	return
 }
 
-func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path string) *methodDesc {
+func (s *serviceDesc) buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path string) *methodDesc {
 	defer func() { methodSets[m.GoName]++ }()
 
 	vars := buildPathVars(path)
@@ -233,10 +241,8 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 			}
 		}
 	}
-	comment := m.Comments.Leading.String() + m.Comments.Trailing.String()
-	if comment != "" {
-		comment = "// " + m.GoName + strings.TrimPrefix(strings.TrimSuffix(comment, "\n"), "//")
-	}
+	comments := s.getComments(m)
+
 	return &methodDesc{
 		Upload:               len(uploadFields) > 0,
 		UploadFields:         uploadFields,
@@ -246,7 +252,9 @@ func buildMethodDesc(g *protogen.GeneratedFile, m *protogen.Method, method, path
 		Num:                  methodSets[m.GoName],
 		Request:              g.QualifiedGoIdent(m.Input.GoIdent),
 		Reply:                g.QualifiedGoIdent(m.Output.GoIdent),
-		Comment:              comment,
+		Comment:              comments.MethodComment,
+		RouteInfoComment:     comments.RouteComment,
+		NoMethodNameComment:  comments.ServiceComment,
 		Path:                 path,
 		Method:               method,
 		HasVars:              len(vars) > 0,
@@ -283,6 +291,61 @@ func replacePath(name string, value string, path string) string {
 		)
 	}
 	return path
+}
+
+// Comments 注释
+type Comments struct {
+	MethodComment  string
+	RouteComment   string
+	ServiceComment string
+}
+
+func (s *serviceDesc) getComments(m *protogen.Method) Comments {
+	var comment string
+	var routeComment string
+	keywords, desc := parseKeywords(m.Comments.Leading.String(), m.GoName)
+	if str, ok := keywords[m.GoName]; ok {
+		comment += fmt.Sprintf("// %s %s", m.GoName, str)
+	} else if len(desc) == 0 {
+		desc = s.ServiceName + "_" + m.GoName
+		comment += fmt.Sprintf("// %s %s", m.GoName, desc)
+	}
+	for keyword, c := range keywords {
+		if keyword != m.GoName {
+			routeComment += fmt.Sprintf("// @%s %s", keyword, c)
+		}
+	}
+	// 操作路径
+	routeComment += fmt.Sprintf("// @operation /%s/%s\n", s.ServiceName, string(m.Desc.Name()))
+	// 描述
+	routeComment += fmt.Sprintf("// @description %s", desc)
+	return Comments{
+		MethodComment:  comment,
+		RouteComment:   routeComment,
+		ServiceComment: desc,
+	}
+}
+
+func parseKeywords(comments string, method string) (map[string]string, string) {
+	meta := make(map[string]string)
+	lines := strings.Split(comments, "\n")
+	var keyword string
+	var desc string
+	for i, line := range lines {
+		line = strings.TrimPrefix(line, "//")
+		if strings.HasPrefix(strings.TrimSpace(line), "@") {
+			keywords := keyWordReg.FindStringSubmatch(line)
+			keyword = keywords[1]
+			meta[keyword] = strings.Replace(line, "@"+keyword, "", -1)
+		} else if strings.HasPrefix(strings.TrimSpace(line), method) || i == 0 {
+			keyword = method
+			meta[keyword] = strings.Replace(line, keyword, "", -1)
+			desc = meta[keyword]
+		} else if keyword != "" {
+			meta[keyword] += "\n" + line
+		}
+	}
+	return meta, desc
 }
 
 func camelCaseVars(s string) string {

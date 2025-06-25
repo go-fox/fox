@@ -3,9 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator"
+
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
+
+	"github.com/go-fox/fox/cmd/protoc-gen-fox-route/generator"
 )
 
 var flags flag.FlagSet
@@ -30,7 +32,7 @@ func main() {
 		// Enable "optional" keyword in front of type (e.g. optional string label = 1;)
 		plugin.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 		if *conf.Version {
-			fmt.Printf("protoc-gen-go-http %v\n", release)
+			fmt.Printf("protoc-gen-fox-route %v\n", release)
 		}
 		sqlGenerator, err := generator.NewFoxRouteSQLGenerator(conf, plugin)
 		if err != nil {

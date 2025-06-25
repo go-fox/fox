@@ -607,6 +607,7 @@ func (g *OpenAPIv3Generator) buildOperationV3(
 	// Create the operation.
 	op := &v3.Operation{
 		Tags:        []string{tagName},
+		Summary:     description,
 		Description: description,
 		OperationId: operationID,
 		Parameters:  parameters,

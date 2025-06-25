@@ -1,10 +1,12 @@
 {{$svrType := .ServiceType}}
 {{$svrName := .ServiceName}}
+{{$serComment := .ServiceComment}}
 
 {{- range .MethodSets}}
 const Operation{{$svrType}}{{.OriginalName}} = "/{{$svrName}}/{{.OriginalName}}"
 {{- end}}
 
+{{$serComment}}
 type {{.ServiceType}}HTTPServer interface {
 {{- range .MethodSets}}
 	{{- if ne .Comment ""}}
@@ -25,6 +27,10 @@ func Register{{.ServiceType}}HTTPServer(s http.Router, srv {{.ServiceType}}HTTPS
 {{if .Upload }}
 {{$FileQualifiedGoIdent:=.FileQualifiedGoIdent}}
 {{$FileQualifiedGoIdent:=.FileQualifiedGoIdent}}
+// _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler {{.NoMethodNameComment}}
+{{- if ne .RouteInfoComment ""}}
+{{.RouteInfoComment}}
+{{- end}}
 func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) func(ctx *http.Context) error {
     return func(ctx *http.Context) error {
         var in {{.Request}}
@@ -70,6 +76,10 @@ func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) fu
     }
 }
 {{else}}
+// _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler {{.NoMethodNameComment}}
+{{- if ne .RouteInfoComment ""}}
+{{.RouteInfoComment}}
+{{- end}}
 func _{{$svrType}}_{{.Name}}{{.Num}}_HTTP_Handler(srv {{$svrType}}HTTPServer) func(ctx *http.Context) error {
 	return func(ctx *http.Context) error {
 		var in {{.Request}}

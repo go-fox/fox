@@ -4,10 +4,6 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
-	"github.com/emicklei/proto"
-	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/model"
-	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/templatex"
-	"google.golang.org/protobuf/compiler/protogen"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,6 +12,12 @@ import (
 	"text/template"
 	"time"
 	"unicode"
+
+	"github.com/emicklei/proto"
+	"google.golang.org/protobuf/compiler/protogen"
+
+	"github.com/go-fox/fox/cmd/protoc-gen-fox-route/generator/model"
+	"github.com/go-fox/fox/cmd/protoc-gen-fox-route/generator/templatex"
 )
 
 const versionFormat = "20060102150405"

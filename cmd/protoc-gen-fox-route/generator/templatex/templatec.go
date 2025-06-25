@@ -18,7 +18,7 @@ package templatex
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-fox/fox/cmd/protoc-gen-fox-migrate-route/generator/pathx"
+	"github.com/go-fox/fox/cmd/protoc-gen-fox-route/generator/pathx"
 	"github.com/pkg/errors"
 	goformat "go/format"
 	"io/ioutil"

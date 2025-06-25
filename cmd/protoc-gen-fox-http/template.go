@@ -11,11 +11,12 @@ import (
 var httpTemplate string
 
 type serviceDesc struct {
-	ServiceType string // Greeter
-	ServiceName string // helloworld.Greeter
-	Metadata    string // api/helloworld/helloworld.proto
-	Methods     []*methodDesc
-	MethodSets  map[string]*methodDesc
+	ServiceType    string // Greeter
+	ServiceName    string // helloworld.Greeter
+	ServiceComment string // 注册服务
+	Metadata       string // api/helloworld/helloworld.proto
+	Methods        []*methodDesc
+	MethodSets     map[string]*methodDesc
 }
 
 // UploadFields 上传字段
@@ -38,12 +39,15 @@ type methodDesc struct {
 	Reply        string
 	Comment      string
 	// http_rule
-	Path         string
-	Method       string
-	HasVars      bool
-	HasBody      bool
-	Body         string
-	ResponseBody string
+	Path                string
+	Method              string
+	HasVars             bool
+	HasBody             bool
+	Body                string
+	ResponseBody        string
+	HttpFuncComment     string
+	NoMethodNameComment string
+	RouteInfoComment    string
 }
 
 func (s *serviceDesc) execute() string {
