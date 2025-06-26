@@ -16,6 +16,7 @@ type serviceDesc struct {
 	ServiceComment      string // 注册服务
 	ServiceCommentTitle string // 服务注释
 	Metadata            string // api/helloworld/helloworld.proto
+	ServiceAnnotate     map[string]string
 	Methods             []*methodDesc
 	MethodSets          map[string]*methodDesc
 }

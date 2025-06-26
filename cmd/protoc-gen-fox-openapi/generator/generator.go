@@ -70,6 +70,7 @@ type OpenAPIv3Generator struct {
 	linterRulePattern *regexp.Regexp
 	pathPattern       *regexp.Regexp
 	namedPathPattern  *regexp.Regexp
+	keyWordReg        *regexp.Regexp
 }
 
 // NewOpenAPIv3Generator creates a new generator for a protoc plugin invocation.
@@ -84,6 +85,7 @@ func NewOpenAPIv3Generator(plugin *protogen.Plugin, conf Configuration, inputFil
 		linterRulePattern: regexp.MustCompile(`\(-- .* --\)`),
 		pathPattern:       regexp.MustCompile("{([^=}]+)}"),
 		namedPathPattern:  regexp.MustCompile("{(.+)=(.+)}"),
+		keyWordReg:        regexp.MustCompile(`^@([a-zA-z]+)`),
 	}
 }
 
@@ -98,6 +100,36 @@ func (g *OpenAPIv3Generator) Run(outputFile *protogen.GeneratedFile) error {
 		return fmt.Errorf("failed to write yaml: %s", err.Error())
 	}
 	return nil
+}
+
+func (g *OpenAPIv3Generator) parseKeywords(comments string, method string) (map[string]string, string) {
+	meta := make(map[string]string)
+	lines := strings.Split(comments, "\n")
+	var keyword string
+	var desc string
+	for i, line := range lines {
+		line = trimLeftSpace(strings.TrimPrefix(line, "//"))
+		if strings.HasPrefix(line, "@") {
+			keywords := g.keyWordReg.FindStringSubmatch(line)
+			keyword = keywords[1]
+			meta[keyword] = trimLeftSpace(strings.Replace(line, "@"+keyword, "", -1))
+		} else if strings.HasPrefix(strings.TrimSpace(line), method) || i == 0 {
+			keyword = method
+			meta[keyword] = trimLeftSpace(strings.Replace(line, keyword, "", -1))
+			desc = meta[keyword]
+		} else if keyword != "" && len(line) > 0 {
+			meta[keyword] += "\n" + line
+		}
+	}
+	return meta, desc
+}
+
+func trimLeftSpace(str string) string {
+	if strings.HasPrefix(str, " ") {
+		str = strings.TrimPrefix(str, " ")
+		return trimLeftSpace(str)
+	}
+	return str
 }
 
 // buildDocumentV3 builds an OpenAPIv3 document for a plugin request.
@@ -721,16 +753,18 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 	for _, service := range services {
 		annotationsCount := 0
 		var tagName string
-		serviceComment := g.filterCommentString(service.Comments.Leading)
+		_, serviceComment := g.parseKeywords(service.Comments.Leading.String(), service.GoName)
 		if len(serviceComment) > 0 {
 			tagName = serviceComment
+		} else {
+			tagName = string(service.Desc.Name())
 		}
 
 		for _, method := range service.Methods {
 			comment := g.filterCommentString(method.Comments.Leading)
 			inputMessage := method.Input
 			outputMessage := method.Output
-			operationID := service.GoName + "_" + method.GoName
+			operationID := fmt.Sprintf("/%s/%s", service.Desc.FullName(), method.Desc.Name())
 
 			rules := make([]*annotations.HttpRule, 0)
 
@@ -780,6 +814,11 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 					// Merge any `Operation` annotations with the current
 					extOperation := proto.GetExtension(method.Desc.Options(), v3.E_Operation)
 					if extOperation != nil {
+						proto.Merge(op, &v3.Operation{
+							Tags: []string{
+								string(service.Desc.Name()),
+							},
+						})
 						proto.Merge(op, extOperation.(*v3.Operation))
 					}
 
@@ -789,8 +828,10 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 		}
 
 		if annotationsCount > 0 {
-			comment := g.filterCommentString(service.Comments.Leading)
-			d.Tags = append(d.Tags, &v3.Tag{Name: tagName, Description: comment})
+			_, comment := g.parseKeywords(service.Comments.Leading.String(), service.GoName)
+			if len(comment) > 0 {
+				d.Tags = append(d.Tags, &v3.Tag{Name: tagName, Description: comment}, &v3.Tag{Name: string(service.Desc.Name()), Description: comment})
+			}
 		}
 	}
 }

@@ -72,13 +72,13 @@ func genService(_ *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFi
 		g.P("//")
 		g.P(deprecationComment)
 	}
-	comment := service.Comments.Leading.String()
-	var commentTitle string
-	if comment != "" {
-		comment = strings.ReplaceAll(comment, service.GoName, "")
-		comment = strings.TrimSpace(strings.TrimPrefix(strings.TrimSuffix(comment, "\n"), "//"))
-		commentTitle = comment
-		comment = "// " + service.GoName + "HTTPServer " + comment
+	var comment string
+	keywords, desc := parseKeywords(service.Comments.Leading.String(), service.GoName)
+	if str, ok := keywords[service.GoName]; ok {
+		comment += fmt.Sprintf("// %s %s", service.GoName, str)
+	} else if len(desc) == 0 {
+		desc = string(service.Desc.FullName())
+		comment += fmt.Sprintf("// %s %s", service.GoName, desc)
 	}
 	// HTTP Server.
 	sd := &serviceDesc{
@@ -86,7 +86,8 @@ func genService(_ *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFi
 		ServiceName:         string(service.Desc.FullName()),
 		Metadata:            file.Desc.Path(),
 		ServiceComment:      comment,
-		ServiceCommentTitle: commentTitle,
+		ServiceCommentTitle: desc,
+		ServiceAnnotate:     keywords,
 	}
 	for _, method := range service.Methods {
 		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
@@ -317,13 +318,15 @@ func (s *serviceDesc) getComments(m *protogen.Method) Comments {
 	}
 	for keyword, c := range keywords {
 		if keyword != m.GoName {
-			routeComment += fmt.Sprintf("// @%s %s", keyword, c)
+			routeComment += fmt.Sprintf("// @%s %s\n", keyword, c)
 		}
 	}
+	// 服务名称
+	routeComment += fmt.Sprintf("// @service %s\n", s.ServiceType)
+	// 服务描述
+	routeComment += fmt.Sprintf("// @serviceDescription %s\n", s.ServiceCommentTitle)
 	// 操作路径
 	routeComment += fmt.Sprintf("// @operation /%s/%s\n", s.ServiceName, string(m.Desc.Name()))
-	// 服务名称
-	routeComment += fmt.Sprintf("// @service %s\n", s.ServiceCommentTitle)
 	// 描述
 	routeComment += fmt.Sprintf("// @description %s", desc)
 	return Comments{
@@ -339,8 +342,8 @@ func parseKeywords(comments string, method string) (map[string]string, string) {
 	var keyword string
 	var desc string
 	for i, line := range lines {
-		line = strings.TrimPrefix(line, "//")
-		if strings.HasPrefix(strings.TrimSpace(line), "@") {
+		line = trimLeftSpace(strings.TrimPrefix(line, "//"))
+		if strings.HasPrefix(line, "@") {
 			keywords := keyWordReg.FindStringSubmatch(line)
 			keyword = keywords[1]
 			meta[keyword] = trimLeftSpace(strings.Replace(line, "@"+keyword, "", -1))
