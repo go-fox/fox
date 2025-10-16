@@ -35,7 +35,6 @@ import (
 
 	"github.com/go-fox/fox/errors"
 	"github.com/go-fox/fox/internal/bytesconv"
-	"github.com/go-fox/fox/middleware"
 	"github.com/go-fox/fox/transport"
 )
 
@@ -197,11 +196,10 @@ func (s *Server) fastHTTPErrorHandler(fastCtx *fasthttp.RequestCtx, err error) {
 // This method will match all HTTP verbs: GET, POST, PUT, HEAD etc...
 func (r *router) Use(args ...any) Router {
 	var (
-		subRouter   Router
-		prefix      string
-		prefixes    []string
-		handlers    []Handler
-		middlewares []middleware.Middleware
+		subRouter Router
+		prefix    string
+		prefixes  []string
+		handlers  []Handler
 	)
 	for i := 0; i < len(args); i++ {
 		switch arg := args[i].(type) {
@@ -215,8 +213,6 @@ func (r *router) Use(args ...any) Router {
 			handlers = append(handlers, arg)
 		case func(ctx *Context) error:
 			handlers = append(handlers, arg)
-		case middleware.Middleware:
-			middlewares = append(middlewares, arg)
 		default:
 			panic(fmt.Sprintf("use: invalid handler %v\n", reflect.TypeOf(arg)))
 		}
