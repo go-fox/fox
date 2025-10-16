@@ -31,6 +31,26 @@ type Handler func(ctx context.Context, request interface{}) (response interface{
 // Middleware defines Middleware.
 type Middleware func(Handler) Handler
 
+// StructMiddleware 结构体中间件
+type StructMiddleware interface {
+	Handle() Middleware
+}
+
+type middlewareStruct struct {
+	middleware Middleware
+}
+
+func (m *middlewareStruct) Handle() Middleware {
+	return m.middleware
+}
+
+// NewStructMiddleware 创建结构体中间件
+func NewStructMiddleware(middleware Middleware) StructMiddleware {
+	return &middlewareStruct{
+		middleware: middleware,
+	}
+}
+
 // Chain returns a Middleware that specifies the chained handler for endpoint.
 //
 //	@param m ...Middleware
