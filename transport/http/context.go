@@ -62,6 +62,7 @@ type Context struct {
 	fastCtx          *fasthttp.RequestCtx
 	handlers         HandlersChain
 	middleware       matcher.Matcher
+	mountMiddleware  []matcher.Matcher
 	method           string
 	routePath        string
 	routePattern     string
@@ -82,6 +83,7 @@ func (s *Server) acquireContext(fastCtx *fasthttp.RequestCtx) *Context {
 	ctx.fastCtx = fastCtx
 	ctx.srv = s
 	ctx.middleware = s.Config().middlewares
+	ctx.mountMiddleware = make([]matcher.Matcher, 0)
 	ctx.method = bytesconv.BytesToString(fastCtx.Method())
 	ctx.originalPath = bytesconv.BytesToString(fastCtx.URI().PathOriginal())
 	m, ok := methodMap[ctx.method]
@@ -101,6 +103,7 @@ func (ctx *Context) reset() {
 	ctx.index = -1
 	ctx.fastCtx = nil
 	ctx.middleware = nil
+	ctx.mountMiddleware = nil
 	ctx.srv = nil
 	ctx.method = ""
 	ctx.routePath = ""
@@ -135,7 +138,13 @@ func (ctx *Context) SetContext(c context.Context) {
 func (ctx *Context) Middleware(h middleware.Handler) middleware.Handler {
 	tr, ok := transport.FromServerContext(ctx.Context())
 	if ok {
+		for _, m := range ctx.mountMiddleware {
+			h = middleware.Chain(m.Match(tr.Operation())...)(h)
+		}
 		return middleware.Chain(ctx.middleware.Match(tr.Operation())...)(h)
+	}
+	for _, m := range ctx.mountMiddleware {
+		h = middleware.Chain(m.Match(ctx.PathTemplate())...)(h)
 	}
 	return middleware.Chain(ctx.middleware.Match(ctx.PathTemplate())...)(h)
 }

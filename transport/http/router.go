@@ -377,6 +377,10 @@ func (r *router) mount(pattern string, mux Router) {
 		if n >= 0 && ctx.urlParams.keys[n] == "*" && len(ctx.urlParams.values) > n {
 			ctx.urlParams.remove(n)
 		}
+		srv, ok := mux.(*Server)
+		if ok {
+			ctx.mountMiddleware = append(ctx.mountMiddleware, srv.Config().middlewares)
+		}
 		return mux.ServeHTTP(ctx)
 	})
 
