@@ -544,7 +544,7 @@ func (t *token) checkLoginArgs(loginId any, opts LoginOptions) error {
 func (t *token) distUsableToken(ctx context.Context, loginId any, opts LoginOptions) (string, error) {
 	// 1、获取全局配置的 isConcurrent 参数
 	//    如果配置为：不允许一个账号多地同时登录，则需要先将这个账号的历史登录会话标记为：被顶下线
-	if t.config.IsConcurrent {
+	if !t.config.IsConcurrent {
 		err := t.Replaced(ctx, loginId, opts.GetDevice())
 		if err != nil {
 			return "", err
