@@ -814,11 +814,6 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 					// Merge any `Operation` annotations with the current
 					extOperation := proto.GetExtension(method.Desc.Options(), v3.E_Operation)
 					if extOperation != nil {
-						proto.Merge(op, &v3.Operation{
-							Tags: []string{
-								string(service.Desc.Name()),
-							},
-						})
 						proto.Merge(op, extOperation.(*v3.Operation))
 					}
 
@@ -828,10 +823,7 @@ func (g *OpenAPIv3Generator) addPathsToDocumentV3(d *v3.Document, services []*pr
 		}
 
 		if annotationsCount > 0 {
-			_, comment := g.parseKeywords(service.Comments.Leading.String(), service.GoName)
-			if len(comment) > 0 {
-				d.Tags = append(d.Tags, &v3.Tag{Name: tagName, Description: comment}, &v3.Tag{Name: string(service.Desc.Name()), Description: comment})
-			}
+			d.Tags = append(d.Tags, &v3.Tag{Name: tagName, Description: service.GoName})
 		}
 	}
 }
